@@ -1,0 +1,83 @@
+/* ==============================================================
+   DESIGN TOKENS
+   Color   ink #123B36 (deep teal-forest, primary) · inkDeep #0B2422
+           mist #F5F6F2 (bg) · surface #FFFFFF · line #E2E4DE
+           amber #F2A73B (CTA) · amberDeep #D68A1D
+           sage #4C9F70 (positive) · rose #C1435B (alert/cancel)
+   Type    Display: Space Grotesk · Body: Inter · Utility/IDs: IBM Plex Mono
+   Layout  Patient/Doctor/Staff render inside a phone-frame (native mobile
+           app, per SRS 2.5). Admin renders as a full desktop dashboard
+           (per SRS 2.4).
+   Signature   an animated ECG pulse-line, used sparingly as a motif.
+   ============================================================== */
+
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap");
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+:root {
+  --ink: #123b36;
+  --ink-deep: #0b2422;
+  --mist: #f5f6f2;
+  --surface: #ffffff;
+  --line: #e2e4de;
+  --amber: #f2a73b;
+  --amber-deep: #d68a1d;
+  --sage: #4c9f70;
+  --rose: #c1435b;
+  --muted: #5c6b67;
+}
+
+.f-display {
+  font-family: "Space Grotesk", sans-serif;
+}
+.f-body {
+  font-family: "Inter", sans-serif;
+}
+.f-mono {
+  font-family: "IBM Plex Mono", monospace;
+}
+
+@keyframes pulseDraw {
+  0% {
+    stroke-dashoffset: 340;
+  }
+  60% {
+    stroke-dashoffset: 0;
+  }
+  100% {
+    stroke-dashoffset: -340;
+  }
+}
+.pulse-line path {
+  stroke-dasharray: 340;
+  animation: pulseDraw 3.2s ease-in-out infinite;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.rise {
+  animation: rise 0.35s ease both;
+}
+
+::-webkit-scrollbar {
+  width: 0px;
+  height: 0px;
+}
