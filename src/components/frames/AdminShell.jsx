@@ -1,5 +1,6 @@
 import React from "react";
 import { Activity, LogOut } from "lucide-react";
+import InstallButton from "../ui/InstallButton.jsx";
 
 // Admin renders as a full desktop dashboard, because the SRS (Section 2.4)
 // says admin access is via a standard web browser, unlike the other roles.
@@ -49,6 +50,9 @@ export default function AdminShell({ children, tabs, active, onTab, onLogout, us
             </button>
           ))}
           <div style={{ marginTop: "auto", borderTop: "1px solid rgba(255,255,255,.12)", paddingTop: 12 }}>
+            <div style={{ padding: "0 10px 10px" }}>
+              <InstallButton style={{ width: "100%", justifyContent: "center", marginBottom: 10 }} />
+            </div>
             {user && (
               <div style={{ padding: "0 10px 10px" }}>
                 <div className="f-body" style={{ color: "#fff", fontSize: 12.5, fontWeight: 600 }}>{user.name}</div>
