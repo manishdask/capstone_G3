@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import InstallButton from "../../components/ui/InstallButton.jsx";
 import {
   HeartPulse, Siren, Stethoscope, MapPin, Phone, Car, Train, Wifi, Waves,
   TreePine, Languages, ArrowRight, Search, Users, Building2, ShieldCheck,
@@ -126,15 +127,18 @@ export default function PublicSite({ onEnterPortal }) {
             <a className="pub-nav-link" href="#pub-locations">Locations & Hours</a>
           </nav>
 
-          <button
-            onClick={onEnterPortal}
-            className="f-body"
-            style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--ink)", color: "#fff", border: "none", borderRadius: 999, padding: "10px 18px", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}
-          >
-            <ShieldCheck size={15} />
-            Staff & Patient Portal
-            <ArrowRight size={14} />
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <InstallButton />
+            <button
+              onClick={onEnterPortal}
+              className="f-body"
+              style={{ display: "flex", alignItems: "center", gap: 8, background: "var(--ink)", color: "#fff", border: "none", borderRadius: 999, padding: "10px 18px", fontSize: 13, fontWeight: 700, cursor: "pointer", whiteSpace: "nowrap" }}
+            >
+              <ShieldCheck size={15} />
+              Staff & Patient Portal
+              <ArrowRight size={14} />
+            </button>
+          </div>
         </div>
       </header>
 
