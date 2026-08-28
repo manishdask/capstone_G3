@@ -81,3 +81,32 @@ body,
   width: 0px;
   height: 0px;
 }
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.spin {
+  animation: spin 0.8s linear infinite;
+}
+
+/* Shared loading / error / empty states used across data-driven screens */
+.f-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 40px 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+.f-error {
+  background: #f8e9ec;
+  color: var(--rose);
+  border: 1px solid #f0c7d0;
+  border-radius: 10px;
+  padding: 10px 12px;
+  font-size: 12.5px;
+  margin: 0 18px 12px;
+}

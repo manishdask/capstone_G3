@@ -2,7 +2,7 @@
 // Provides offline fallback and asset caching for PWA support.
 // Strategy: Cache-first for static assets, network-first for API/dynamic content.
 
-const CACHE_NAME = "sgh-hms-v1.0.0";
+const CACHE_NAME = "sgh-hms-v1.0.1";
 const OFFLINE_URL = "/offline.html";
 
 // Assets to pre-cache on install
@@ -46,10 +46,12 @@ self.addEventListener("activate", (event) => {
 // FETCH: Cache-first with network fallback
 // -----------------------------------------------
 self.addEventListener("fetch", (event) => {
-  // Skip non-GET and cross-origin requests
+  // Skip non-GET and cross-origin requests (the backend API lives on a
+  // different origin/port and must never be served from this cache).
   if (event.request.method !== "GET") return;
 
   const url = new URL(event.request.url);
+  if (url.origin !== self.location.origin) return;
 
   // For navigation requests: network-first, fallback to cached /index.html
   if (event.request.mode === "navigate") {
