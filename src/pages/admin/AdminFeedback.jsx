@@ -77,7 +77,7 @@ export default function AdminFeedback() {
 
       {error && <ErrorState message={error} onRetry={load} />}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 16 }}>
+      <div className="grid-fluid" style={{ "--col-min": "150px", "--grid-gap": "10px", marginBottom: 16 }}>
         {[
           { label: "Total responses", value: feedbacks.length, color: "var(--ink-deep)" },
           { label: "Positive (≥4★)", value: positiveCount, color: "var(--sage)" },

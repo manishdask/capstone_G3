@@ -89,7 +89,7 @@ export default function PatientHome({ user, goBook, onNavigate }) {
 
       {(user?.allergies || activePrescription) && (
         <div style={{ padding: "12px 18px 0" }}>
-          <Card style={{ background: "#FFF8EE", border: "1px solid #F2E0B8", padding: "10px 14px" }}>
+          <Card style={{ background: "var(--tint-amber)", border: "1px solid var(--line-amber)", padding: "10px 14px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
               <AlertCircle size={13} color="var(--amber-deep)" />
               <span className="f-display" style={{ fontSize: 12, fontWeight: 700, color: "var(--amber-deep)" }}>Medical Summary</span>
@@ -114,26 +114,26 @@ export default function PatientHome({ user, goBook, onNavigate }) {
             <div>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
                 <div>
-                  <div className="f-body" style={{ color: "#CFE0DC", fontSize: 12 }}>
+                  <div className="f-body" style={{ color: "var(--on-dark-body)", fontSize: 12 }}>
                     Next appointment ({upcoming.status})
                   </div>
                   <div className="f-display" style={{ color: "#fff", fontSize: 17, fontWeight: 700, marginTop: 4 }}>
                     {upcoming.doctor}
                   </div>
-                  <div className="f-body" style={{ color: "#CFE0DC", fontSize: 12, marginTop: 2 }}>
+                  <div className="f-body" style={{ color: "var(--on-dark-body)", fontSize: 12, marginTop: 2 }}>
                     {upcoming.date} · {upcoming.time}
                   </div>
-                  <div className="f-body" style={{ color: "#8FA39E", fontSize: 11, marginTop: 2 }}>
+                  <div className="f-body" style={{ color: "var(--on-dark-muted)", fontSize: 11, marginTop: 2 }}>
                     {upcoming.specialty}
                   </div>
                 </div>
-                <PulseDivider color="#F2A73B" width={70} height={30} />
+                <PulseDivider color="var(--amber)" width={70} height={30} />
               </div>
               <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
                 <button
                   onClick={() => handleCancel(upcoming.id)}
                   className="f-body"
-                  style={{ padding: "6px 14px", borderRadius: 8, fontSize: 11.5, fontWeight: 600, background: "rgba(193,67,91,0.25)", color: "#FFB3BF", border: "1px solid rgba(193,67,91,0.4)", cursor: "pointer" }}
+                  style={{ padding: "6px 14px", borderRadius: 8, fontSize: 11.5, fontWeight: 600, background: "rgba(193,67,91,0.25)", color: "var(--tint-alert)", border: "1px solid rgba(193,67,91,0.4)", cursor: "pointer" }}
                 >
                   Cancel
                 </button>
@@ -141,10 +141,10 @@ export default function PatientHome({ user, goBook, onNavigate }) {
             </div>
           ) : (
             <div style={{ padding: "8px 0" }}>
-              <div className="f-body" style={{ color: "#CFE0DC", fontSize: 12.5 }}>
+              <div className="f-body" style={{ color: "var(--on-dark-body)", fontSize: 12.5 }}>
                 No upcoming consultations scheduled.
               </div>
-              <div className="f-body" style={{ color: "#8FA39E", fontSize: 11, marginTop: 2 }}>
+              <div className="f-body" style={{ color: "var(--on-dark-muted)", fontSize: 11, marginTop: 2 }}>
                 Use the button below to book an appointment slot.
               </div>
             </div>
@@ -162,7 +162,7 @@ export default function PatientHome({ user, goBook, onNavigate }) {
         <div className="f-display" style={{ fontSize: 14, fontWeight: 700, color: "var(--ink-deep)", marginBottom: 10 }}>
           Quick actions
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div className="grid-fluid" style={{ "--col-min": "130px", "--grid-gap": "10px" }}>
           {[
             { icon: FileText, label: "Records", nav: "records" },
             { icon: FlaskConical, label: "Lab reports", nav: "records" },
@@ -174,7 +174,7 @@ export default function PatientHome({ user, goBook, onNavigate }) {
               style={{ padding: 14, display: "flex", alignItems: "center", gap: 10, cursor: a.nav ? "pointer" : "default" }}
               onClick={() => a.nav && onNavigate && onNavigate(a.nav)}
             >
-              <div style={{ width: 34, height: 34, borderRadius: 10, background: "#EEF1EE", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ width: 34, height: 34, borderRadius: 10, background: "var(--tint-neutral)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <a.icon size={17} color="var(--ink)" />
               </div>
               <span className="f-body" style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-deep)" }}>
@@ -201,8 +201,8 @@ export default function PatientHome({ user, goBook, onNavigate }) {
             </div>
             <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
               {notifications.map((n) => (
-                <div key={n.id} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "10px 12px", background: "#F5F6F2", borderRadius: 10 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: n.type === "reminder" ? "#FEF3E2" : "#EEF1EE", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <div key={n.id} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "10px 12px", background: "var(--mist)", borderRadius: 10 }}>
+                  <div style={{ width: 28, height: 28, borderRadius: 8, background: n.type === "reminder" ? "var(--tint-amber)" : "var(--tint-neutral)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
                     {n.type === "reminder" ? <Clock size={14} color="var(--amber-deep)" /> : <Bell size={14} color="var(--ink)" />}
                   </div>
                   <div style={{ flex: 1 }}>

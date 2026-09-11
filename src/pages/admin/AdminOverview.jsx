@@ -12,7 +12,9 @@ import { listBranches } from "../../services/branchService.js";
 import { getSummary, getTrend, getDepartmentComparison } from "../../services/reportService.js";
 import { listLowStock } from "../../services/pharmacyService.js";
 
-const DEPT_COLORS = ["#123B36", "#4C9F70", "#F2A73B", "#C1435B", "#9CB3AE", "#0e5c66"];
+// Same brand tokens the other charts already use, so the department split
+// matches the rest of the dashboard instead of restating the palette in hex.
+const DEPT_COLORS = ["var(--ink)", "var(--sage)", "var(--amber)", "var(--rose)", "var(--on-dark-faint)", "var(--ink-mid)"];
 
 export default function AdminOverview() {
   const [scopeFilter, setScopeFilter] = useState("All Branches");
@@ -92,7 +94,7 @@ export default function AdminOverview() {
 
       {error && <ErrorState message={error} onRetry={load} />}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 14, marginBottom: 16 }}>
+      <div className="grid-fluid" style={{ "--col-min": "170px", marginBottom: 16 }}>
         {[
           { label: "Total patients", value: totalPatients.toLocaleString(), icon: Users, sub: "registered" },
           { label: "Revenue (period)", value: `$${(totalRevenue / 1000).toFixed(1)}k`, icon: TrendingUp, sub: "AUD" },
@@ -112,7 +114,7 @@ export default function AdminOverview() {
         ))}
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14, marginBottom: 16 }}>
+      <div className="grid-fluid" style={{ "--col-min": "190px", marginBottom: 16 }}>
         <Card style={{ borderLeft: "3px solid var(--sage)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
             <UserCheck size={16} color="var(--sage)" />
@@ -143,7 +145,7 @@ export default function AdminOverview() {
         </Card>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 14, marginBottom: 14 }}>
+      <div className="grid-split" style={{ "--split": "1.4fr 1fr", "--grid-gap": "14px", marginBottom: 14 }}>
         <Card>
           <div className="f-display" style={{ fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Revenue trend (7 days)</div>
           <ResponsiveContainer width="100%" height={200}>
@@ -216,7 +218,7 @@ export default function AdminOverview() {
                   <td className="f-body" style={{ fontSize: 12.5 }}>{b.staffCount}</td>
                   <td className="f-body" style={{ fontSize: 12.5 }}>{b.beds}</td>
                   <td>
-                    <span className="f-body" style={{ fontSize: 11, background: "#E7F3EB", color: "var(--sage)", padding: "2px 8px", borderRadius: 999, fontWeight: 600 }}>{b.status}</span>
+                    <span className="f-body" style={{ fontSize: 11, background: "var(--tint-success)", color: "var(--sage)", padding: "2px 8px", borderRadius: 999, fontWeight: 600 }}>{b.status}</span>
                   </td>
                 </tr>
               ))}

@@ -89,7 +89,7 @@ export default function StaffPharmacy({ user }) {
     <div>
       <ScreenHeader title="Pharmacy stock" subtitle="FR26–30 · Medicine dispensing and low stock alerts" />
       {error && <div style={{ padding: "0 18px 12px" }}><ErrorState message={error} onRetry={load} /></div>}
-      {notice && <div style={{ padding: "0 18px 12px" }}><div className="f-body" style={{ background: "#E7F3EB", color: "var(--sage)", border: "1px solid var(--sage)", borderRadius: 10, padding: "8px 12px", fontSize: 12 }}>{notice}</div></div>}
+      {notice && <div style={{ padding: "0 18px 12px" }}><div className="f-body" style={{ background: "var(--tint-success)", color: "var(--sage)", border: "1px solid var(--sage)", borderRadius: 10, padding: "8px 12px", fontSize: 12 }}>{notice}</div></div>}
 
       <div style={{ padding: "0 18px 12px", display: "flex", gap: 8 }}>
         {[["inventory", "Inventory Stock"], ["prescriptions", "Prescriptions Queue"]].map(([k, l]) => (

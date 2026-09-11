@@ -151,7 +151,7 @@ export default function Login() {
         style={{
           flex: "1.2 1 500px",
           order: 2,
-          background: "linear-gradient(135deg, var(--ink-deep) 0%, #0e5c66 100%)",
+          background: "linear-gradient(135deg, var(--ink-deep) 0%, var(--ink-mid) 100%)",
           color: "#fff",
           padding: "50px 48px",
           display: "flex",
@@ -180,21 +180,21 @@ export default function Login() {
             Clear information.<br />Safer care.
           </div>
 
-          <div className="f-body" style={{ fontSize: 14, color: "#CFE0DC", marginTop: 16, lineHeight: 1.6 }}>
+          <div className="f-body" style={{ fontSize: 14, color: "var(--on-dark-body)", marginTop: 16, lineHeight: 1.6 }}>
             Patients, appointments, clinical operations and accounts in one secure workspace.
           </div>
 
-          <div className="f-body" style={{ fontSize: 11, color: "#8FA39E", marginTop: 30 }}>
+          <div className="f-body" style={{ fontSize: 11, color: "var(--on-dark-muted)", marginTop: 30 }}>
             Capstone Project · CPRO306 (Group G3)
           </div>
         </div>
 
         <div style={{ position: "absolute", bottom: 130, right: 40, background: "rgba(255,255,255,.12)", backdropFilter: "blur(6px)", borderRadius: 14, padding: "12px 18px", border: "1px solid rgba(255,255,255,.14)" }}>
-          <div className="f-body" style={{ fontSize: 10.5, color: "#B9C7C3" }}>Today's care</div>
+          <div className="f-body" style={{ fontSize: 10.5, color: "var(--on-dark-faint)" }}>Today's care</div>
           <div className="f-display" style={{ fontSize: 13.5, fontWeight: 700, color: "#fff" }}>On schedule</div>
         </div>
         <div style={{ position: "absolute", bottom: 60, right: 90, background: "rgba(255,255,255,.12)", backdropFilter: "blur(6px)", borderRadius: 14, padding: "12px 18px", border: "1px solid rgba(255,255,255,.14)" }}>
-          <div className="f-body" style={{ fontSize: 10.5, color: "#B9C7C3" }}>Security</div>
+          <div className="f-body" style={{ fontSize: 10.5, color: "var(--on-dark-faint)" }}>Security</div>
           <div className="f-display" style={{ fontSize: 13.5, fontWeight: 700, color: "#fff" }}>Audit active</div>
         </div>
       </div>
@@ -218,7 +218,7 @@ export default function Login() {
           </div>
 
           {sessionNotice && (
-            <div className="f-body" style={{ background: "#FDF2E0", color: "var(--amber-deep)", border: "1px solid #F2E0B8", borderRadius: 10, padding: "10px 12px", fontSize: 12.5, marginBottom: 16 }}>
+            <div className="f-body" style={{ background: "var(--tint-amber)", color: "var(--amber-deep)", border: "1px solid var(--line-amber)", borderRadius: 10, padding: "10px 12px", fontSize: 12.5, marginBottom: 16 }}>
               {sessionNotice}
             </div>
           )}
@@ -271,7 +271,7 @@ export default function Login() {
             </form>
           ) : (
           <>
-          <div style={{ display: "flex", gap: 4, background: "#EEF1EE", padding: 4, borderRadius: 12, marginBottom: 20 }}>
+          <div style={{ display: "flex", gap: 4, background: "var(--tint-neutral)", padding: 4, borderRadius: 12, marginBottom: 20 }}>
             {[
               ["login", "Sign In"],
               ["register", "Self-Registration (Patient)"],
@@ -404,7 +404,7 @@ export default function Login() {
               </div>
 
               <div className="sgh-field">
-                <label className="sgh-label">Pre-existing Medical Allergies <span style={{ color: "#9CAAA6" }}>(optional)</span></label>
+                <label className="sgh-label">Pre-existing Medical Allergies <span style={{ color: "var(--on-dark-muted)" }}>(optional)</span></label>
                 <input className="sgh-input" value={reg.allergies} onChange={(e) => setField("allergies", e.target.value)} placeholder="e.g. Penicillin, Peanuts" />
               </div>
 
@@ -510,7 +510,7 @@ export default function Login() {
               <p style={{ marginTop: 6 }}>Sensitive fields are encrypted at rest (AES-256-GCM) and in transit (TLS). Access is governed by Role-Based Access Control (RBAC) and all activity is logged in a compliance audit trail (NFR12).</p>
               <strong style={{ display: "block", marginTop: 10 }}>Your Rights</strong>
               <p style={{ marginTop: 6 }}>You have the right to access, correct, or request deletion of your personal data. Contact the Privacy Officer at <em>privacy@stgeorge.health</em>.</p>
-              <div style={{ marginTop: 14, padding: 10, background: "#EEF1EE", borderRadius: 8, fontSize: 11.5, color: "var(--muted)" }}>
+              <div style={{ marginTop: 14, padding: 10, background: "var(--tint-neutral)", borderRadius: 8, fontSize: 11.5, color: "var(--muted)" }}>
                 Prototype notice: This is an academic capstone prototype (CPRO306, Group G3) using synthetic data only.
               </div>
             </div>
@@ -546,7 +546,7 @@ export default function Login() {
               </div>
             ))}
             <button onClick={() => setShowHelp(false)} className="f-body"
-              style={{ width: "100%", background: "#EEF1EE", color: "var(--ink-deep)", border: "none", padding: "10px 0", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer", marginTop: 8 }}>
+              style={{ width: "100%", background: "var(--tint-neutral)", color: "var(--ink-deep)", border: "none", padding: "10px 0", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer", marginTop: 8 }}>
               Close
             </button>
           </div>

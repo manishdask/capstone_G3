@@ -96,7 +96,7 @@ export default function MfaSetup() {
             <div className="f-body" style={{ fontSize: 12.5, color: "var(--muted)", lineHeight: 1.6, marginBottom: 14 }}>
               1. Open an authenticator app (Google Authenticator, Authy, etc.) and add a new account using this key:
             </div>
-            <div className="f-body" style={{ background: "#EEF1EE", border: "1px solid var(--line)", borderRadius: 10, padding: "12px 14px", fontSize: 15, fontWeight: 700, letterSpacing: 1.5, color: "var(--ink-deep)", textAlign: "center", marginBottom: 16, wordBreak: "break-all" }}>
+            <div className="f-body" style={{ background: "var(--tint-neutral)", border: "1px solid var(--line)", borderRadius: 10, padding: "12px 14px", fontSize: 15, fontWeight: 700, letterSpacing: 1.5, color: "var(--ink-deep)", textAlign: "center", marginBottom: 16, wordBreak: "break-all" }}>
               {secret}
             </div>
 
@@ -147,7 +147,7 @@ export default function MfaSetup() {
             <div className="f-body" style={{ fontSize: 12.5, color: "var(--muted)", lineHeight: 1.6, marginBottom: 12 }}>
               MFA is now active. Save these one-time recovery codes somewhere safe — each can be used once to sign in if you lose access to your authenticator app.
             </div>
-            <div style={{ background: "#EEF1EE", border: "1px solid var(--line)", borderRadius: 10, padding: "14px 16px", marginBottom: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <div style={{ background: "var(--tint-neutral)", border: "1px solid var(--line)", borderRadius: 10, padding: "14px 16px", marginBottom: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               {recoveryCodes.map((c) => (
                 <div key={c} className="f-body" style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-deep)", fontFamily: "monospace" }}>{c}</div>
               ))}
@@ -156,7 +156,7 @@ export default function MfaSetup() {
               type="button"
               onClick={handleCopy}
               className="f-body"
-              style={{ width: "100%", background: "#EEF1EE", color: "var(--ink-deep)", border: "1px solid var(--line)", padding: "10px 0", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+              style={{ width: "100%", background: "var(--tint-neutral)", color: "var(--ink-deep)", border: "1px solid var(--line)", padding: "10px 0", borderRadius: 10, fontWeight: 600, fontSize: 13, cursor: "pointer", marginBottom: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
             >
               {copied ? <Check size={14} /> : <Copy size={14} />} {copied ? "Copied" : "Copy all codes"}
             </button>

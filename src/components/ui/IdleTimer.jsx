@@ -119,7 +119,7 @@ export default function IdleTimer({ timeoutMinutes = 10, onLogout }) {
             width: 56,
             height: 56,
             borderRadius: "50%",
-            background: "#FEF3E2",
+            background: "var(--tint-amber)",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

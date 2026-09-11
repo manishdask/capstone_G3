@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Download, CheckCircle2, CreditCard, X, Lock } from "lucide-react";
+import { Download, CheckCircle2 } from "lucide-react";
 import Card from "../../components/ui/Card.jsx";
 import Badge from "../../components/ui/Badge.jsx";
 import ScreenHeader from "../../components/ui/ScreenHeader.jsx";
 import Button from "../../components/ui/Button.jsx";
 import LoadingState from "../../components/ui/LoadingState.jsx";
 import ErrorState from "../../components/ui/ErrorState.jsx";
+import StripeCheckoutModal from "../../components/ui/StripeCheckoutModal.jsx";
 import { statusTone } from "../../utils/statusTone.js";
 import { listLabOrders, downloadLabResult } from "../../services/labService.js";
 import { listPrescriptions } from "../../services/pharmacyService.js";
-import { listInvoices, payInvoice, downloadInvoicePdf } from "../../services/billingService.js";
+import { listInvoices, downloadInvoicePdf } from "../../services/billingService.js";
 
 export default function PatientRecords({ user }) {
   const [tab, setTab] = useState("records");
@@ -20,12 +21,6 @@ export default function PatientRecords({ user }) {
   const [error, setError] = useState("");
 
   const [payingInv, setPayingInv] = useState(null);
-  const [cardNum, setCardNum] = useState("");
-  const [cardExp, setCardExp] = useState("");
-  const [cardCvv, setCardCvv] = useState("");
-  const [payError, setPayError] = useState("");
-  const [paySuccess, setPaySuccess] = useState(false);
-  const [paying, setPaying] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -46,28 +41,10 @@ export default function PatientRecords({ user }) {
     load();
   }, []);
 
-  async function handlePay(e) {
-    e.preventDefault();
-    if (cardNum.replace(/\s/g, "").length !== 16) { setPayError("Enter a valid 16-digit credit card number."); return; }
-    if (!cardExp.trim() || !cardExp.includes("/")) { setPayError("Enter expiration MM/YY."); return; }
-    if (cardCvv.length !== 3) { setPayError("Enter 3-digit CVV code."); return; }
-
-    setPayError("");
-    setPaying(true);
-    try {
-      await payInvoice(payingInv.id, "card");
-      setPaySuccess(true);
-      setTimeout(() => {
-        setPayingInv(null);
-        setPaySuccess(false);
-        setCardNum(""); setCardExp(""); setCardCvv("");
-        load();
-      }, 1200);
-    } catch (err) {
-      setPayError(err.message);
-    } finally {
-      setPaying(false);
-    }
+  // FR40: close the checkout modal and refresh the invoice list.
+  function handleCheckoutSuccess() {
+    setPayingInv(null);
+    load();
   }
 
   async function downloadLabReport(l) {
@@ -169,14 +146,14 @@ export default function PatientRecords({ user }) {
                         {l.date === "Pending" ? "Status: Request received" : `Released: ${l.date}`}
                       </div>
                       {l.status === "Ready" && l.result && (
-                        <div className="f-body" style={{ fontSize: 12, color: "var(--ink-deep)", marginTop: 6, background: "#f5f6f2", padding: "6px 8px", borderRadius: 6 }}>
+                        <div className="f-body" style={{ fontSize: 12, color: "var(--ink-deep)", marginTop: 6, background: "var(--mist)", padding: "6px 8px", borderRadius: 6 }}>
                           Result: <strong>{l.result}</strong>
                         </div>
                       )}
                     </div>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 6 }}>
                       <Badge tone={statusTone(l.status)}>{l.status}</Badge>
-                      {l.status === "Ready" && l.resultId && (
+                      {l.status === "Ready" && l.resultId && l.hasReportFile && (
                         <Button small variant="ghost" icon={Download} onClick={() => downloadLabReport(l)}>
                           Get Report
                         </Button>
@@ -212,7 +189,7 @@ export default function PatientRecords({ user }) {
                       Print Bill
                     </Button>
                     {i.status === "Pending" && (
-                      <Button small variant="dark" icon={CheckCircle2} onClick={() => { setPayingInv(i); setPayError(""); setPaySuccess(false); }}>
+                      <Button small variant="dark" icon={CheckCircle2} onClick={() => setPayingInv(i)}>
                         Pay online
                       </Button>
                     )}
@@ -225,68 +202,11 @@ export default function PatientRecords({ user }) {
       </div>
 
       {payingInv && (
-        <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(11,36,34,0.75)", zIndex: 100, display: "flex", alignItems: "center", justifyContent: "center", padding: 16, borderRadius: 34 }}>
-          <Card style={{ width: "100%", maxWidth: 330, background: "#fff", border: "none" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
-              <div className="f-display" style={{ fontWeight: 700, fontSize: 14.5, color: "var(--ink-deep)", display: "flex", alignItems: "center", gap: 6 }}>
-                <CreditCard size={16} /> Online Checkout
-              </div>
-              <button onClick={() => setPayingInv(null)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)" }}>
-                <X size={16} />
-              </button>
-            </div>
-
-            <div className="f-body" style={{ fontSize: 12, color: "var(--muted)", marginBottom: 12 }}>
-              Amount: <strong style={{ color: "var(--ink-deep)", fontSize: 13.5 }}>${payingInv.amount.toFixed(2)} AUD</strong> <br />
-              Ref: <span className="f-mono">INV-{payingInv.id}</span>
-            </div>
-
-            {paySuccess ? (
-              <div style={{ textAlign: "center", padding: "14px 0", color: "var(--sage)" }}>
-                <CheckCircle2 size={32} style={{ margin: "0 auto 8px" }} />
-                <div className="f-body" style={{ fontSize: 13, fontWeight: 700 }}>Payment Authorized!</div>
-                <div className="f-body" style={{ fontSize: 11, color: "var(--muted)" }}>Updating ledger...</div>
-              </div>
-            ) : (
-              <form onSubmit={handlePay}>
-                <div style={{ marginBottom: 10 }}>
-                  <label className="f-body" style={{ fontSize: 10.5, color: "var(--muted)", display: "block", marginBottom: 4 }}>Cardholder Name</label>
-                  <input value={user?.name || ""} disabled className="f-body" style={{ width: "100%", padding: 8, borderRadius: 8, border: "1px solid var(--line)", background: "#f5f6f2", fontSize: 12 }} />
-                </div>
-                <div style={{ marginBottom: 10 }}>
-                  <label className="f-body" style={{ fontSize: 10.5, color: "var(--muted)", display: "block", marginBottom: 4 }}>Credit Card Number</label>
-                  <input
-                    value={cardNum}
-                    onChange={(e) => setCardNum(e.target.value.replace(/[^0-9]/g, "").substring(0, 16))}
-                    placeholder="4111 2222 3333 4444"
-                    className="f-mono"
-                    style={{ width: "100%", padding: 8, borderRadius: 8, border: "1px solid var(--line)", fontSize: 12 }}
-                  />
-                </div>
-                <div style={{ display: "flex", gap: 10, marginBottom: 12 }}>
-                  <div style={{ flex: 1 }}>
-                    <label className="f-body" style={{ fontSize: 10.5, color: "var(--muted)", display: "block", marginBottom: 4 }}>Expiry MM/YY</label>
-                    <input value={cardExp} onChange={(e) => setCardExp(e.target.value.substring(0, 5))} placeholder="12/28" className="f-mono" style={{ width: "100%", padding: 8, borderRadius: 8, border: "1px solid var(--line)", fontSize: 12 }} />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <label className="f-body" style={{ fontSize: 10.5, color: "var(--muted)", display: "block", marginBottom: 4 }}>CVV Code</label>
-                    <input type="password" value={cardCvv} onChange={(e) => setCardCvv(e.target.value.replace(/[^0-9]/g, "").substring(0, 3))} placeholder="123" className="f-mono" style={{ width: "100%", padding: 8, borderRadius: 8, border: "1px solid var(--line)", fontSize: 12 }} />
-                  </div>
-                </div>
-
-                {payError && <div className="f-body" style={{ color: "var(--rose)", fontSize: 11, marginBottom: 10 }}>{payError}</div>}
-
-                <div style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 10, color: "var(--muted)", marginBottom: 12 }}>
-                  <Lock size={12} color="var(--sage)" /> Sandboxed gateway (FR40) — no card details are stored.
-                </div>
-
-                <Button full variant="dark" type="submit" disabled={paying}>
-                  {paying ? "Processing…" : `Pay $${payingInv.amount.toFixed(2)} AUD`}
-                </Button>
-              </form>
-            )}
-          </Card>
-        </div>
+        <StripeCheckoutModal
+          invoice={payingInv}
+          onClose={() => setPayingInv(null)}
+          onSuccess={handleCheckoutSuccess}
+        />
       )}
     </div>
   );

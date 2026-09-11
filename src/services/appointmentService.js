@@ -14,6 +14,8 @@ export async function getDoctorAvailability(doctorStaffId, date) {
 /**
  * FR16/FR19: books an appointment; the backend rejects overlapping slots
  * transactionally (409) and returns alternative time suggestions.
+ * NOTE — FR18 deviation: bookings are confirmed instantly when the slot is
+ * free (no manual receptionist approval gate).
  */
 export async function bookAppointment({ branchId, specialization, doctorStaffId, date, startTime, endTime, reason }) {
   try {

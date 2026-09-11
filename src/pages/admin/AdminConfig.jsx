@@ -89,7 +89,7 @@ function BackupPanel() {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {jobs.map((j) => (
-            <div key={j.id} style={{ background: "#EEF1EE", borderRadius: 10, padding: "9px 11px" }}>
+            <div key={j.id} style={{ background: "var(--tint-neutral)", borderRadius: 10, padding: "9px 11px" }}>
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                 <div className="f-body" style={{ fontSize: 11.5, color: "var(--ink-deep)" }}>
                   {new Date(j.startedAt).toLocaleString("en-AU")}
@@ -296,12 +296,12 @@ export default function AdminConfig() {
       <div className="f-body" style={{ fontSize: 13, color: "var(--muted)", marginBottom: 12 }}>
         System parameters, operational variables, and data backups
       </div>
-      <div className="f-body" style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "#E7F3EB", border: "1px solid #CFE6D6", borderRadius: 10, padding: "10px 12px", fontSize: 11.5, color: "var(--sage)", marginBottom: 16 }}>
+      <div className="f-body" style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "var(--tint-success)", border: "1px solid var(--line-success)", borderRadius: 10, padding: "10px 12px", fontSize: 11.5, color: "var(--sage)", marginBottom: 16 }}>
         <Info size={14} style={{ flexShrink: 0, marginTop: 1 }} />
         System variables, backups, and MFA below are real — every change is persisted and audited (FR59, FR57/58, FR50).
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1.2fr 1fr", gap: 16 }}>
+      <div className="grid-split" style={{ "--split": "1.2fr 1fr" }}>
         <div>
           <SystemSettingsCard />
         </div>

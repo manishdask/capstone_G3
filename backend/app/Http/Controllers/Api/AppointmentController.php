@@ -8,13 +8,22 @@ use App\Models\Appointment;
 use App\Models\Notification;
 use App\Models\Role;
 use App\Models\Staff;
+use App\Services\BillingService;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 /**
  * FR16-FR20: booking, doctor availability, transactional conflict prevention,
- * accept/reject workflow, queued confirmation/reminder notifications.
+ * queued confirmation/reminder notifications.
+ *
+ * NOTE — documented deviation from FR18: the SRS baseline says receptionists
+ * "approve" appointments. Under an approved change, a booking whose slot is
+ * genuinely free (FR19 transactional check + unique index) is confirmed
+ * INSTANTLY and a confirmation notification is queued, with no manual approval
+ * gate. Staff retain modify/cancel/reject + actor/reason recording via
+ * updateStatus(), and completion now auto-generates the itemised invoice
+ * (FR37) via BillingService. See FR_PROGRESS.md "Appointment booking" section.
  */
 class AppointmentController extends Controller
 {
@@ -68,9 +77,12 @@ class AppointmentController extends Controller
     }
 
     /**
-     * FR16/FR19: patient requests an appointment; a transactional check rejects
-     * overlapping slots for the same doctor. A unique DB index is the hard
-     * backstop against races even under concurrent requests.
+     * FR16/FR19: patient books an appointment with an available doctor. The
+     * transactional conflict check rejects overlapping slots for the same
+     * doctor, and the appointment is confirmed INSTANTLY when the slot is free
+     * (approved deviation from FR18's manual receptionist approval gate). A
+     * unique DB index is the hard backstop against races even under concurrent
+     * requests. FR20 confirmation notification is queued immediately.
      */
     public function store(AppointmentRequest $request)
     {
@@ -78,7 +90,7 @@ class AppointmentController extends Controller
         $patient = $request->user()->patient;
 
         if (! $patient) {
-            abort(422, 'Only a registered patient can request an appointment.');
+            abort(422, 'Only a registered patient can book an appointment.');
         }
 
         try {
@@ -102,7 +114,7 @@ class AppointmentController extends Controller
                     'appointment_date' => $data['appointment_date'],
                     'start_time' => $data['start_time'],
                     'end_time' => $data['end_time'],
-                    'status' => 'pending',
+                    'status' => 'confirmed', // instant confirmation — slot is free (FR19 passed)
                     'reason' => $data['reason'] ?? null,
                     'created_by' => $request->user()->id,
                 ]);
@@ -115,12 +127,26 @@ class AppointmentController extends Controller
             ], 409);
         }
 
-        return response()->json(['data' => $appointment->load('doctor.user', 'branch')], 201);
+        $this->notifyAppointment($appointment, 'confirmed');
+
+        // FR36: invoice the consultation immediately so the patient sees a bill
+        // right after booking and can pay. Completion appends labs/procedures.
+        $invoice = app(BillingService::class)->generateForBooking($appointment, $request->user());
+
+        return response()->json([
+            'data' => $appointment->load('doctor.user', 'branch'),
+            'invoice_id' => $invoice?->id,
+        ], 201);
     }
 
     /**
-     * FR18: receptionist/doctor confirms, rejects or cancels; records actor and reason.
+     * FR18 (retained tools): receptionist/doctor/admin modifies, rejects or
+     * cancels an appointment, recording actor (audit middleware) and reason.
      * FR20: queues a confirmation/reminder notification on a valid state change.
+     * FR37: marking an appointment COMPLETED appends appointment-linked labs and
+     * procedures to the booking invoice (or issues a supplementary one if it was
+     * already paid) via BillingService — the consultation is never double-charged.
+     * Rejecting/cancelling voids any unpaid Pending booking invoice.
      */
     public function updateStatus(Request $request, Appointment $appointment)
     {
@@ -129,6 +155,25 @@ class AppointmentController extends Controller
             'reason' => ['nullable', 'string', 'max:1000'],
         ]);
 
+        $user = $request->user();
+
+        // A patient reaches this route only to cancel their own booking — every
+        // other transition (confirm/reject/complete) stays a staff action, and
+        // one patient must never touch another's appointment.
+        if ($user->hasRole(Role::PATIENT)) {
+            if ($appointment->patient_id !== $user->patient?->id) {
+                abort(403, 'You are not authorised to perform this action.');
+            }
+
+            if ($data['status'] !== 'cancelled') {
+                abort(403, 'You can only cancel your own appointment.');
+            }
+
+            if (in_array($appointment->status, ['completed', 'cancelled', 'rejected'], true)) {
+                abort(422, 'This appointment can no longer be cancelled.');
+            }
+        }
+
         $appointment->update([
             'status' => $data['status'],
             'cancellation_reason' => in_array($data['status'], ['rejected', 'cancelled'])
@@ -136,18 +181,52 @@ class AppointmentController extends Controller
                 : $appointment->cancellation_reason,
         ]);
 
+        $this->notifyAppointment($appointment, $data['status']);
+
+        // If the booking is rejected/cancelled, drop any unpaid Pending invoice
+        // so the patient is never asked to pay for a visit that won't happen.
+        if (in_array($data['status'], ['rejected', 'cancelled'])) {
+            $this->voidPendingBookingInvoice($appointment);
+        }
+
+        // Auto-bill the completed visit (FR36/FR37): appends appointment-linked
+        // labs/procedures to the booking invoice, or issues a supplementary
+        // invoice if the booking was already paid. Consultation is never
+        // double-charged.
+        $invoice = $data['status'] === 'completed'
+            ? app(BillingService::class)->generateForAppointment($appointment, $request->user())
+            : null;
+
+        return response()->json([
+            'data' => $appointment->fresh(),
+            'invoice_id' => $invoice?->id,
+        ]);
+    }
+
+    /** FR20: queue one confirmation/reminder notification for a status change. */
+    private function notifyAppointment(Appointment $appointment, string $status): void
+    {
         Notification::create([
             'recipient_user_id' => $appointment->patient?->user_id,
             'recipient_contact' => $appointment->patient?->contact_number,
             'channel' => 'email',
-            'template' => 'appointment_'.$data['status'],
-            'message' => "Your appointment on {$appointment->appointment_date->toDateString()} was {$data['status']}.",
+            'template' => 'appointment_'.$status,
+            'message' => "Your appointment on {$appointment->appointment_date->toDateString()} was {$status}.",
             'related_type' => 'appointment',
             'related_id' => $appointment->id,
             'status' => 'queued',
         ]);
+    }
 
-        return response()->json(['data' => $appointment->fresh()]);
+    /** Remove an unpaid Pending booking invoice when its appointment is cancelled/rejected. */
+    private function voidPendingBookingInvoice(Appointment $appointment): void
+    {
+        $invoice = $appointment->invoice;
+
+        if ($invoice && $invoice->status === 'pending' && $invoice->payments()->count() === 0) {
+            $invoice->items()->delete();
+            $invoice->delete();
+        }
     }
 
     private function suggestAlternatives(array $data): array

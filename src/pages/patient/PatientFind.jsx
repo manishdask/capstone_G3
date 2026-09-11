@@ -112,7 +112,7 @@ export default function PatientFind({ onSelect, user }) {
             style={{
               padding: "5px 12px", borderRadius: 8, fontSize: 12, fontWeight: 600,
               cursor: "pointer", border: "1px solid var(--line)",
-              background: gender === g ? "#EEF1EE" : "#fff", color: "var(--ink-deep)",
+              background: gender === g ? "var(--tint-neutral)" : "#fff", color: "var(--ink-deep)",
             }}
           >
             {g}

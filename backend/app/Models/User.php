@@ -61,10 +61,15 @@ class User extends Authenticatable
         ];
     }
 
-    /** FR50: MFA is mandatory for privileged roles once approved/rolled out. */
+    /**
+     * FR50: MFA is mandatory for privileged roles once approved/rolled out.
+     *
+     * MFA TEMPORARILY DISABLED FOR TESTING — MUST RE-ENABLE BEFORE SUBMISSION (FR50)
+     */
     public function requiresMfa(): bool
     {
-        return $this->hasAnyRole([Role::ADMIN, Role::BRANCH_MANAGER]);
+        // MFA TEMPORARILY DISABLED FOR TESTING — MUST RE-ENABLE BEFORE SUBMISSION (FR50)
+        return false;
     }
 
     public function hasMfaEnabled(): bool

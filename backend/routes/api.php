@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\AdmissionController;
+use App\Http\Controllers\Api\AiChatController;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\AuditController;
 use App\Http\Controllers\Api\AuthController;
@@ -20,6 +21,7 @@ use App\Http\Controllers\Api\PatientController;
 use App\Http\Controllers\Api\PatientDuplicateController;
 use App\Http\Controllers\Api\PaymentController;
 use App\Http\Controllers\Api\PharmacyController;
+use App\Http\Controllers\Api\ProcedureBookingController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\SecurityAlertController;
 use App\Http\Controllers\Api\ServiceController;
@@ -60,6 +62,10 @@ Route::middleware(['auth:sanctum', 'active.session', 'mfa.setup'])->group(functi
     Route::get('/auth/me', [AuthController::class, 'me']);
     Route::post('/auth/logout', [AuthController::class, 'logout'])->middleware('audit');
 
+    // FR46: non-clinical AI chatbot — available to any authenticated role.
+    // The answer is audited (action AI_CHAT) inside AiService for provenance.
+    Route::post('/ai/chat', [AiChatController::class, 'chat']);
+
     // FR50: MFA enrolment/removal — available to any authenticated user, but
     // enforced (mandatory) only for Admin/Branch Manager via RequireMfaSetup.
     Route::post('/mfa/setup', [MfaController::class, 'setup']);
@@ -93,8 +99,11 @@ Route::middleware(['auth:sanctum', 'active.session', 'mfa.setup'])->group(functi
     Route::get('/doctors/{doctor}/availability', [AppointmentController::class, 'availability']);
     Route::post('/appointments', [AppointmentController::class, 'store'])
         ->middleware(['audit', "role:{$patient}"]);
+    // Patients are included so they can cancel their OWN booking (the patient
+    // app has always offered the button); updateStatus() restricts them to
+    // 'cancelled' on their own appointment and nothing else.
     Route::patch('/appointments/{appointment}/status', [AppointmentController::class, 'updateStatus'])
-        ->middleware(['audit', "role:{$admin},{$branchManager},{$receptionist},{$doctor}"]);
+        ->middleware(['audit', "role:{$admin},{$branchManager},{$receptionist},{$doctor},{$patient}"]);
 
     // Staff — FR21-FR25
     Route::get('/staff', [StaffController::class, 'index']);
@@ -137,6 +146,14 @@ Route::middleware(['auth:sanctum', 'active.session', 'mfa.setup'])->group(functi
     Route::post('/lab-results/{result}/release', [LabController::class, 'release'])
         ->middleware(['audit', "role:{$labTech},{$doctor}"]);
 
+    // Procedures (FR37 billing input) — staff record procedures against a visit.
+    Route::middleware("role:{$admin},{$branchManager},{$receptionist},{$doctor},{$nurse}")->group(function () {
+        Route::get('/procedure-bookings', [ProcedureBookingController::class, 'index']);
+        Route::post('/procedure-bookings', [ProcedureBookingController::class, 'store']);
+        Route::patch('/procedure-bookings/{booking}/status', [ProcedureBookingController::class, 'updateStatus'])
+            ->middleware('audit');
+    });
+
     // Billing — FR36-FR40
     Route::get('/invoices', [BillingController::class, 'index']);
     Route::get('/invoices/{invoice}', [BillingController::class, 'show']);
@@ -144,6 +161,11 @@ Route::middleware(['auth:sanctum', 'active.session', 'mfa.setup'])->group(functi
     Route::post('/invoices', [BillingController::class, 'store'])
         ->middleware(['audit', "role:{$admin},{$branchManager},{$receptionist}"]);
     Route::post('/invoices/{invoice}/pay', [BillingController::class, 'pay'])
+        ->middleware(['audit', "role:{$patient},{$receptionist},{$admin}"]);
+    // FR40: Stripe checkout — create intent (card tokenized client-side by Elements).
+    Route::post('/invoices/{invoice}/checkout', [BillingController::class, 'checkout'])
+        ->middleware(['audit', "role:{$patient},{$receptionist},{$admin}"]);
+    Route::post('/invoices/{invoice}/confirm', [BillingController::class, 'confirm'])
         ->middleware(['audit', "role:{$patient},{$receptionist},{$admin}"]);
 
     // FR64 (proposed): staff-initiated refund.

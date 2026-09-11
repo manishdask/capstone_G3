@@ -144,7 +144,7 @@ function VitalsForm({ user, patient, onBack }) {
           </div>
 
           {lastRecorded && (
-            <div className="f-body" style={{ fontSize: 11.5, color: "var(--muted)", marginBottom: 10, background: "#F5F6F2", padding: 8, borderRadius: 8 }}>
+            <div className="f-body" style={{ fontSize: 11.5, color: "var(--muted)", marginBottom: 10, background: "var(--mist)", padding: 8, borderRadius: 8 }}>
               Last recorded {new Date(lastRecorded.created_at).toLocaleString("en-AU")}: {lastRecorded.content}
             </div>
           )}

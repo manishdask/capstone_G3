@@ -51,7 +51,7 @@ const patientTabs = [
 
 const doctorTabs = [
   { key: "schedule", label: "Schedule", icon: Calendar },
-  { key: "requests", label: "Requests", icon: ClipboardList },
+  { key: "requests", label: "Upcoming", icon: ClipboardList },
   { key: "patients", label: "Patients", icon: Users },
   { key: "profile", label: "Profile", icon: User },
 ];
@@ -64,6 +64,23 @@ const staffTabs = [
   { key: "labs", label: "Lab Desk", icon: FlaskConical },
   { key: "profile", label: "Profile", icon: User },
 ];
+
+// Receptionist, Nurse, Pharmacist and Lab Technician all share the "staff"
+// shell, but not the same API permissions — showing everyone every tab meant a
+// Lab Technician opening Vitals or Pharmacy got a 403 error card. Each role
+// sees only the screens its own role middleware actually allows.
+const staffTabsByType = {
+  receptionist: ["appts", "vitals", "admissions", "profile"],
+  nurse: ["appts", "vitals", "admissions", "profile"],
+  pharmacist: ["appts", "pharmacy", "profile"],
+  lab_technician: ["appts", "labs", "profile"],
+};
+
+function tabsForStaff(staffType) {
+  const allowed = staffTabsByType[staffType];
+  if (!allowed) return staffTabs; // unknown staff type: fall back to everything
+  return staffTabs.filter((t) => allowed.includes(t.key));
+}
 
 const adminTabs = [
   { key: "overview", label: "Overview", icon: BarChart3 },
@@ -91,6 +108,12 @@ export default function App() {
   const [selectedDoctor, setSelectedDoctor] = useState(null);
 
   const role = user?.role ?? null;
+
+  const visibleStaffTabs = tabsForStaff(user?.staffType);
+  // Guards against a stored tab this role can't open (e.g. after switching users).
+  const activeStaffScreen = visibleStaffTabs.some((t) => t.key === staffScreen)
+    ? staffScreen
+    : visibleStaffTabs[0]?.key;
 
   if (booting) {
     return (
@@ -128,7 +151,7 @@ export default function App() {
 
       {role && <IdleTimer timeoutMinutes={10} onLogout={logout} />}
 
-      <div style={{ padding: role ? "28px 16px" : 0 }}>
+      <div className={role ? "app-stage" : undefined}>
         {role === "patient" && (
           <PhoneFrame
             role="patient"
@@ -167,13 +190,13 @@ export default function App() {
         )}
 
         {role === "staff" && (
-          <PhoneFrame role="staff" tabs={staffTabs} active={staffScreen} onTab={setStaffScreen} user={user}>
-            {staffScreen === "appts" && <StaffAppointments user={user} />}
-            {staffScreen === "vitals" && <StaffVitals user={user} />}
-            {staffScreen === "admissions" && <StaffAdmissions user={user} />}
-            {staffScreen === "pharmacy" && <StaffPharmacy user={user} />}
-            {staffScreen === "labs" && <StaffLabDesk user={user} />}
-            {staffScreen === "profile" && <PatientProfile user={user} onLogout={logout} />}
+          <PhoneFrame role="staff" tabs={visibleStaffTabs} active={activeStaffScreen} onTab={setStaffScreen} user={user}>
+            {activeStaffScreen === "appts" && <StaffAppointments user={user} />}
+            {activeStaffScreen === "vitals" && <StaffVitals user={user} />}
+            {activeStaffScreen === "admissions" && <StaffAdmissions user={user} />}
+            {activeStaffScreen === "pharmacy" && <StaffPharmacy user={user} />}
+            {activeStaffScreen === "labs" && <StaffLabDesk user={user} />}
+            {activeStaffScreen === "profile" && <PatientProfile user={user} onLogout={logout} />}
           </PhoneFrame>
         )}
 

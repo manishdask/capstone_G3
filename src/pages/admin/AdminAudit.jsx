@@ -76,7 +76,7 @@ export default function AdminAudit() {
       <SecurityAlertsPanel alerts={alerts} error={alertsError} onRetry={loadAlerts} />
 
       <Card style={{ marginBottom: 14 }}>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 8, marginBottom: 10 }}>
+        <div className="grid-fluid" style={{ "--col-min": "140px", "--grid-gap": "8px", marginBottom: 10 }}>
           <input placeholder="Action contains…" value={filters.action} onChange={(e) => setFilter("action", e.target.value)} className="f-body" style={{ padding: 7, borderRadius: 7, border: "1px solid var(--line)", fontSize: 12 }} />
           <input placeholder="Object type" value={filters.object_type} onChange={(e) => setFilter("object_type", e.target.value)} className="f-body" style={{ padding: 7, borderRadius: 7, border: "1px solid var(--line)", fontSize: 12 }} />
           <select value={filters.outcome} onChange={(e) => setFilter("outcome", e.target.value)} className="f-body" style={{ padding: 7, borderRadius: 7, border: "1px solid var(--line)", fontSize: 12 }}>
@@ -135,7 +135,7 @@ function SecurityAlertsPanel({ alerts, error, onRetry }) {
 
   if (total === 0) {
     return (
-      <Card style={{ marginBottom: 14, background: "#E7F3EB", border: "1px solid #CFE6D6" }}>
+      <Card style={{ marginBottom: 14, background: "var(--tint-success)", border: "1px solid var(--line-success)" }}>
         <div className="f-body" style={{ fontSize: 12.5, color: "var(--sage)", display: "flex", alignItems: "center", gap: 6 }}>
           <ShieldCheck size={15} /> No automated security alerts right now (FR56).
         </div>
@@ -144,7 +144,7 @@ function SecurityAlertsPanel({ alerts, error, onRetry }) {
   }
 
   return (
-    <Card style={{ marginBottom: 14, background: "#FDF2E0", border: "1px solid #F2E0B8" }}>
+    <Card style={{ marginBottom: 14, background: "var(--tint-amber)", border: "1px solid var(--line-amber)" }}>
       <div className="f-display" style={{ fontWeight: 700, fontSize: 13.5, marginBottom: 10, display: "flex", alignItems: "center", gap: 6, color: "var(--amber-deep)" }}>
         <ShieldAlert size={16} /> Automated Security Alerts (FR56) — {total}
       </div>

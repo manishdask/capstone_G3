@@ -206,7 +206,11 @@ class AuthController extends Controller
 
         Cache::put("session-active:{$tokenId}", true, now()->addMinutes(10));
 
-        $user->load(['branch', 'roles', 'patient']);
+        // Same relations as me(): the frontend builds its user object straight
+        // from this payload, and staff identity (staff id, staff_type) drives
+        // which screens a staff member sees and which staff id their writes are
+        // filed under. Omitting it left those null until the next page refresh.
+        $user->load(['branch', 'roles', 'patient', 'staff.doctor']);
 
         return response()->json([
             'data' => $user,

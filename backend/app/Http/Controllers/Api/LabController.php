@@ -3,10 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Appointment;
 use App\Models\LabOrder;
 use App\Models\LabResult;
 use App\Models\Notification;
 use App\Models\Role;
+use App\Services\BillingService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -46,6 +48,7 @@ class LabController extends Controller
         $data = $request->validate([
             'patient_id' => ['required', 'exists:patients,id'],
             'branch_id' => ['required', 'exists:branches,id'],
+            'appointment_id' => ['nullable', 'exists:appointments,id'],
             'test_type' => ['required', 'string', 'max:255'],
         ]);
 
@@ -54,6 +57,19 @@ class LabController extends Controller
             'status' => 'requested',
             'requested_at' => now(),
         ]);
+
+        // Late-linked to an already-completed, invoiced appointment? Add it to
+        // the existing (Pending) invoice or spawn a supplementary one (Paid).
+        if ($order->appointment_id) {
+            $appointment = Appointment::find($order->appointment_id);
+            if ($appointment) {
+                app(BillingService::class)->attachItemToCompletedAppointment(
+                    $appointment,
+                    $order->test_type,
+                    'lab_test',
+                );
+            }
+        }
 
         return response()->json(['data' => $order], 201);
     }

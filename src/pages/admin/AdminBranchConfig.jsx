@@ -54,7 +54,7 @@ export default function AdminBranchConfig({ user }) {
         </select>
       </div>
 
-      <div style={{ display: "flex", gap: 4, background: "#EEF1EE", padding: 4, borderRadius: 12, marginBottom: 18, width: "fit-content" }}>
+      <div style={{ display: "flex", gap: 4, background: "var(--tint-neutral)", padding: 4, borderRadius: 12, marginBottom: 18, width: "fit-content" }}>
         {TABS.map((t) => (
           <button
             key={t.key}

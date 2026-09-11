@@ -50,4 +50,14 @@ class Appointment extends Model
     {
         return $this->hasOne(Invoice::class);
     }
+
+    public function labOrders()
+    {
+        return $this->hasMany(LabOrder::class);
+    }
+
+    public function procedureBookings()
+    {
+        return $this->hasMany(ProcedureBooking::class);
+    }
 }

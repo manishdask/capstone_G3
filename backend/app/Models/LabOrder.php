@@ -10,7 +10,7 @@ class LabOrder extends Model
     use HasFactory;
 
     protected $fillable = [
-        'patient_id', 'requester_staff_id', 'branch_id', 'test_type', 'status', 'requested_at',
+        'patient_id', 'appointment_id', 'requester_staff_id', 'branch_id', 'test_type', 'status', 'requested_at',
     ];
 
     protected function casts(): array
@@ -28,6 +28,11 @@ class LabOrder extends Model
     public function requester()
     {
         return $this->belongsTo(Staff::class, 'requester_staff_id');
+    }
+
+    public function appointment()
+    {
+        return $this->belongsTo(Appointment::class);
     }
 
     public function branch()

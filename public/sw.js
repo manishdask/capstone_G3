@@ -1,9 +1,8 @@
 // SGH HMS — Service Worker (sw.js)
-// Provides offline fallback and asset caching for PWA support.
+// Provides asset caching for PWA support.
 // Strategy: Cache-first for static assets, network-first for API/dynamic content.
 
 const CACHE_NAME = "sgh-hms-v1.0.1";
-const OFFLINE_URL = "/offline.html";
 
 // Assets to pre-cache on install
 const PRECACHE_ASSETS = [

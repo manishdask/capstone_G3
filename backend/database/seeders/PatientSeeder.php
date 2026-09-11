@@ -21,6 +21,29 @@ class PatientSeeder extends Seeder
         $branches = Branch::all();
         $patientRole = Role::where('name', Role::PATIENT)->first();
 
+        // One fixed patient per branch so the demo instructions can name a login
+        // that survives a re-seed — a faker-derived address cannot be written
+        // down. The remaining patients stay random, for realistic list volume.
+        $fixed = $branches->map(fn ($branch) => [
+            'branch' => $branch,
+            'first' => 'Demo',
+            'last' => "Patient {$branch->state}",
+            'email' => "patient.{$branch->state}@example.test",
+            // A known allergy keeps the FR63 dispense-conflict path demonstrable.
+            'allergies' => 'Penicillin',
+        ])->all();
+
+        foreach ($fixed as $person) {
+            $this->createPatient(
+                $person['branch'],
+                $patientRole,
+                $person['first'],
+                $person['last'],
+                $person['email'],
+                $person['allergies'],
+            );
+        }
+
         foreach (range(1, 15) as $i) {
             $branch = $branches->random();
             $firstName = fake()->firstName();
@@ -55,5 +78,36 @@ class PatientSeeder extends Seeder
 
             $patient->update(['global_patient_id' => sprintf('SGH-PT-%06d', $patient->id)]);
         }
+    }
+
+    private function createPatient(Branch $branch, Role $patientRole, string $firstName, string $lastName, string $email, ?string $allergies): void
+    {
+        $user = User::create([
+            'branch_id' => $branch->id,
+            'name' => "{$firstName} {$lastName}",
+            'username' => Str::slug($email, '.'),
+            'email' => $email,
+            'password' => self::DEMO_PASSWORD,
+            'status' => 'active',
+        ]);
+
+        $user->roles()->attach($patientRole->id, ['effective_from' => now()->toDateString()]);
+
+        $patient = Patient::create([
+            'user_id' => $user->id,
+            'branch_id' => $branch->id,
+            'global_patient_id' => 'PENDING',
+            'first_name' => $firstName,
+            'last_name' => $lastName,
+            'date_of_birth' => '1988-04-17',
+            'gender' => 'female',
+            'contact_number' => fake()->numerify('04## ### ###'),
+            'email' => $email,
+            'address' => fake()->address(),
+            'allergies' => $allergies,
+            'status' => 'active',
+        ]);
+
+        $patient->update(['global_patient_id' => sprintf('SGH-PT-%06d', $patient->id)]);
     }
 }

@@ -1,7 +1,15 @@
 import React from "react";
 
 export default function Avatar({ name, size = 40, bg = "var(--ink)" }) {
-  const initials = name.split(" ").map((w) => w[0]).slice(0, 2).join("");
+  // Callers pass names straight off API records, which can be blank when a
+  // relation didn't load — splitting undefined would take down the whole screen.
+  const initials = String(name || "?")
+    .trim()
+    .split(/\s+/)
+    .map((w) => w[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("");
   return (
     <div
       className="f-display"

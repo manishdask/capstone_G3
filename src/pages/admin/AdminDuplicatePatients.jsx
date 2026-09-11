@@ -83,7 +83,7 @@ export default function AdminDuplicatePatients() {
                 <Badge tone={f.score >= 80 ? "danger" : "warn"}>Likely duplicate</Badge>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div className="grid-fluid" style={{ "--col-min": "170px", "--grid-gap": "12px" }}>
                 {[f.patient, f.matchedPatient].map((p, i) => (
                   <div key={p.id} style={{ border: "1px solid var(--line)", borderRadius: 10, padding: 10 }}>
                     <div className="f-mono" style={{ fontSize: 10.5, color: "var(--muted)" }}>{p.globalId}</div>

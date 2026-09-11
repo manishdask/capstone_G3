@@ -39,7 +39,7 @@ export default function InstallButton({ style = {}, className = "" }) {
         display: "inline-flex",
         alignItems: "center",
         gap: 6,
-        background: "#0e7f8c",
+        background: "var(--ink-mid)",
         color: "#ffffff",
         border: "none",
         borderRadius: 999,

@@ -109,7 +109,7 @@ export default function AdminStaff() {
       {error && <ErrorState message={error} onRetry={load} />}
 
       {showAddForm && (
-        <Card style={{ background: "#EEF1EE", border: "none", marginBottom: 14 }}>
+        <Card style={{ background: "var(--tint-neutral)", border: "none", marginBottom: 14 }}>
           <div className="f-display" style={{ fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Create Staff Account</div>
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: 10 }}>

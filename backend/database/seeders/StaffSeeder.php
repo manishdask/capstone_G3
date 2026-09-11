@@ -55,8 +55,12 @@ class StaffSeeder extends Seeder
                     Role::LAB_TECHNICIAN => 'lab_technician',
                 };
 
+                // Display names stay synthetic/random so the UI looks real, but
+                // the LOGIN is derived from role + branch state so every demo
+                // account is predictable and survives a re-seed. A faker-derived
+                // email cannot be written down in the demo instructions.
                 $name = fake()->name();
-                $user = $this->makeUser($branch, $name, strtolower(Str::slug($name)).'@stgeorge.test');
+                $user = $this->makeUser($branch, $name, "{$type}.{$branch->state}@stgeorge.test");
                 $this->attachRole($user, $roles[$roleName]);
                 Staff::create([
                     'user_id' => $user->id,
@@ -71,7 +75,7 @@ class StaffSeeder extends Seeder
                 $gender = fake()->randomElement(['male', 'female']);
                 $firstName = $gender === 'male' ? fake()->firstNameMale() : fake()->firstNameFemale();
                 $name = 'Dr. '.$firstName.' '.fake()->lastName();
-                $user = $this->makeUser($branch, $name, strtolower(Str::slug($name)).'@stgeorge.test');
+                $user = $this->makeUser($branch, $name, "doctor{$i}.{$branch->state}@stgeorge.test");
                 $this->attachRole($user, $roles[Role::DOCTOR]);
 
                 $staff = Staff::create([

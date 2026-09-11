@@ -80,7 +80,7 @@ export default function StaffAdmissions({ user }) {
             Admit a new patient
           </Button>
         ) : (
-          <Card style={{ background: "#EEF1EE", border: "none" }}>
+          <Card style={{ background: "var(--tint-neutral)", border: "none" }}>
             <div className="f-display" style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>
               New In-patient Admission
             </div>
@@ -264,7 +264,7 @@ function AdmissionCard({ admission, beds, user, onChanged, setError }) {
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: canRecordVitals ? 12 : 0 }}>
               {observations.map((o) => (
-                <div key={o.id} className="f-body" style={{ fontSize: 11.5, background: "#EEF1EE", borderRadius: 8, padding: "6px 9px" }}>
+                <div key={o.id} className="f-body" style={{ fontSize: 11.5, background: "var(--tint-neutral)", borderRadius: 8, padding: "6px 9px" }}>
                   <strong>{new Date(o.observedAt).toLocaleString("en-AU")}</strong> by {o.staff?.name} —{" "}
                   {[o.temperature != null && `Temp ${o.temperature}°C`, o.pulse != null && `Pulse ${o.pulse}`, o.bloodPressure && `BP ${o.bloodPressure}`, o.spo2 != null && `SpO2 ${o.spo2}%`].filter(Boolean).join(", ")}
                   {o.notes && <div style={{ marginTop: 2, color: "var(--muted)" }}>{o.notes}</div>}
@@ -276,7 +276,7 @@ function AdmissionCard({ admission, beds, user, onChanged, setError }) {
           {canRecordVitals && (
             <form onSubmit={handleSaveVitals}>
               <div className="f-body" style={{ fontSize: 11, color: "var(--muted)", marginBottom: 6 }}>Record new observation</div>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr 1fr", gap: 6, marginBottom: 6 }}>
+              <div className="grid-fluid" style={{ "--col-min": "70px", "--grid-gap": "6px", marginBottom: 6 }}>
                 <input placeholder="Temp °C" value={vitals.temperature_celsius} onChange={(e) => setVitals((v) => ({ ...v, temperature_celsius: e.target.value }))} className="f-body" style={{ padding: 6, borderRadius: 6, border: "1px solid var(--line)", fontSize: 11.5 }} />
                 <input placeholder="Pulse bpm" value={vitals.pulse_bpm} onChange={(e) => setVitals((v) => ({ ...v, pulse_bpm: e.target.value }))} className="f-body" style={{ padding: 6, borderRadius: 6, border: "1px solid var(--line)", fontSize: 11.5 }} />
                 <input placeholder="BP e.g. 120/80" value={vitals.blood_pressure} onChange={(e) => setVitals((v) => ({ ...v, blood_pressure: e.target.value }))} className="f-body" style={{ padding: 6, borderRadius: 6, border: "1px solid var(--line)", fontSize: 11.5 }} />

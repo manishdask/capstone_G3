@@ -28,6 +28,9 @@ class DatabaseSeeder extends Seeder
             SettingSeeder::class,
             DepartmentSeeder::class,
             ServiceSeeder::class,
+            // Last: it books appointments and invoices them through
+            // BillingService, so it needs the branch price lists above to exist.
+            DemoDataSeeder::class,
         ]);
     }
 }

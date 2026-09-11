@@ -202,15 +202,18 @@ export default function PatientDoctorProfile({ doctor, onBack }) {
 
       <div style={{ padding: "0 18px 20px" }}>
         {booked ? (
-          <Card style={{ background: "#E7F3EB", border: "none", textAlign: "center" }}>
+          <Card style={{ background: "var(--tint-success)", border: "none", textAlign: "center" }}>
             <Check size={20} color="var(--sage)" style={{ margin: "0 auto 6px" }} />
             <div className="f-body" style={{ fontSize: 13, fontWeight: 600, color: "var(--ink-deep)" }}>
-              Request sent for {date} at {formatTime(time)} — awaiting doctor confirmation
+              Appointment confirmed for {date} at {formatTime(time)} — your slot is reserved
+            </div>
+            <div className="f-body" style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}>
+              Your consultation bill is ready — pay it under Health records → Invoices.
             </div>
           </Card>
         ) : (
           <Button full icon={Calendar} onClick={handleConfirm} disabled={submitting}>
-            {submitting ? "Sending request…" : "Request appointment"}
+            {submitting ? "Booking…" : "Confirm booking"}
           </Button>
         )}
       </div>

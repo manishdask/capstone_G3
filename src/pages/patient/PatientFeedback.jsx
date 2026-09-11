@@ -89,7 +89,7 @@ export default function PatientFeedback() {
 
           <Card style={{ marginBottom: 12 }}>
             <label className="f-body" style={{ fontSize: 12, color: "var(--muted)", display: "block", marginBottom: 6 }}>
-              Doctor <span style={{ color: "#9CAAA6" }}>(optional)</span>
+              Doctor <span style={{ color: "var(--on-dark-muted)" }}>(optional)</span>
             </label>
             <select
               value={doctorStaffId}

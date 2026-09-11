@@ -1,10 +1,10 @@
 import React from "react";
 
 const TONES = {
-  default: { bg: "#EEF1EE", fg: "var(--ink)" },
-  success: { bg: "#E7F3EB", fg: "var(--sage)" },
-  warn: { bg: "#FDF2E0", fg: "var(--amber-deep)" },
-  danger: { bg: "#F8E9EC", fg: "var(--rose)" },
+  default: { bg: "var(--tint-neutral)", fg: "var(--ink)" },
+  success: { bg: "var(--tint-success)", fg: "var(--sage)" },
+  warn: { bg: "var(--tint-amber)", fg: "var(--amber-deep)" },
+  danger: { bg: "var(--tint-alert)", fg: "var(--rose)" },
 };
 
 export default function Badge({ children, tone = "default" }) {

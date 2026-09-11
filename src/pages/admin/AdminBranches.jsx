@@ -140,7 +140,7 @@ export default function AdminBranches() {
       {error && <ErrorState message={error} onRetry={load} />}
 
       {showAddForm && (
-        <Card style={{ background: "#EEF1EE", border: "none", marginBottom: 14 }}>
+        <Card style={{ background: "var(--tint-neutral)", border: "none", marginBottom: 14 }}>
           <div className="f-display" style={{ fontWeight: 700, fontSize: 14, marginBottom: 10 }}>Create Hospital Branch</div>
           <form onSubmit={handleSubmit}>
             <div style={{ marginBottom: 10 }}>
@@ -184,7 +184,7 @@ export default function AdminBranches() {
         </Card>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+      <div className="grid-fluid" style={{ "--col-min": "230px" }}>
         {branches.map((b) => (
           <Card key={b.id}>
             {editingId === b.id ? (
@@ -218,7 +218,7 @@ export default function AdminBranches() {
                   </div>
                   <Badge tone={b.status === "Active" ? "success" : "danger"}>{b.status}</Badge>
                 </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
+                <div className="grid-fluid" style={{ "--col-min": "160px", "--grid-gap": "10px", marginTop: 14 }}>
                   <div>
                     <div className="f-body" style={{ fontSize: 11, color: "var(--muted)" }}>Patients</div>
                     <div className="f-display" style={{ fontWeight: 700 }}>{b.patients.toLocaleString()}</div>

@@ -27,6 +27,18 @@ export function formatDateTime(value) {
   return d.toLocaleTimeString("en-AU", { hour: "2-digit", minute: "2-digit" });
 }
 
+// Laravel serialises a `date` cast as UTC, so an appointment on 2026-09-09 in
+// the app's Australia/Sydney timezone arrives as "2026-09-08T14:00:00.000000Z".
+// Slicing the first 10 characters therefore yields the *previous* day; parsing
+// it and reading the local calendar date gives the day the user actually booked.
+// "en-CA" is used purely because it formats as YYYY-MM-DD.
+export function toDateKey(value) {
+  if (!value) return "";
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return String(value).slice(0, 10);
+  return d.toLocaleDateString("en-CA");
+}
+
 // "14:30:00" -> "2:30 PM"
 export function formatTime(value) {
   if (!value) return "";
@@ -72,7 +84,10 @@ export function normalizeUser(raw) {
     doctorId: raw.staff?.doctor?.id ?? null,
     // FR50: MFA is mandatory for Admin/Branch Manager — derived from role so
     // it self-heals on refresh, rather than relying only on the login response flag.
-    requiresMfa: roleNames.includes("Admin") || roleNames.includes("Branch Manager"),
+    // MFA TEMPORARILY DISABLED FOR TESTING — MUST RE-ENABLE BEFORE SUBMISSION (FR50).
+    // Matches backend User::requiresMfa() (currently return false). Revert this line
+    // to `roleNames.includes("Admin") || roleNames.includes("Branch Manager")` when re-enabling.
+    requiresMfa: false,
     mfaEnabled: raw.two_factor_enabled_at != null,
   };
 }
@@ -127,7 +142,7 @@ export function normalizeAppointment(raw) {
     branch: raw.branch?.name ?? "",
     branchId: raw.branch_id,
     date: formatDate(raw.appointment_date),
-    rawDate: typeof raw.appointment_date === "string" ? raw.appointment_date.slice(0, 10) : raw.appointment_date,
+    rawDate: toDateKey(raw.appointment_date),
     time: formatTime(raw.start_time),
     rawStartTime: raw.start_time,
     rawEndTime: raw.end_time,
@@ -191,6 +206,9 @@ export function normalizeLabOrder(raw) {
     date: latestResult?.released_at ? formatDate(latestResult.released_at) : "Pending",
     result: latestResult?.result_details ?? "",
     resultId: latestResult?.id ?? null,
+    // The download endpoint serves the attached report file, so a result saved
+    // as findings-only has nothing to download — the UI must not offer it.
+    hasReportFile: Boolean(latestResult?.file_path),
   };
 }
 

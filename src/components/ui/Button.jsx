@@ -4,7 +4,7 @@ const VARIANTS = {
   primary: { background: "var(--amber)", color: "var(--ink-deep)" },
   dark: { background: "var(--ink)", color: "#fff" },
   ghost: { background: "transparent", color: "var(--ink)", border: "1px solid var(--line)" },
-  danger: { background: "#F8E9EC", color: "var(--rose)" },
+  danger: { background: "var(--tint-alert)", color: "var(--rose)" },
 };
 
 export default function Button({ children, onClick, variant = "primary", full, small, icon: Icon, disabled, type = "button" }) {

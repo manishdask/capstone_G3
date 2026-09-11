@@ -10,6 +10,7 @@ import { listPatients, getMedicalRecords } from "../../services/patientService.j
 import { listMedicines } from "../../services/pharmacyService.js";
 import { createMedicalRecord, createPrescription } from "../../services/staffService.js";
 import { requestLabTest } from "../../services/labService.js";
+import { listAppointments } from "../../services/appointmentService.js";
 import { requestBreakGlass } from "../../services/breakGlassService.js";
 
 const TESTS = ["Full Blood Count", "Lipid Profile", "ECG Stress Test", "Chest X-Ray", "Urinalysis"];
@@ -105,6 +106,8 @@ function PatientDetail({ user, patient, onBack }) {
 
   const [showLabForm, setShowLabForm] = useState(false);
   const [selectedTest, setSelectedTest] = useState("");
+  const [labAppointmentId, setLabAppointmentId] = useState("");
+  const [patientAppointments, setPatientAppointments] = useState([]);
   const [labSuccess, setLabSuccess] = useState(false);
   const [labSubmitting, setLabSubmitting] = useState(false);
 
@@ -130,6 +133,12 @@ function PatientDetail({ user, patient, onBack }) {
   useEffect(() => {
     loadRecords();
     listMedicines({ branch_id: patient.branchId }).then(setMedicines).catch(() => setMedicines([]));
+    // FR31: a lab order carries the visit it belongs to, which is what lets
+    // BillingService bill it onto that visit's invoice. Without a linked
+    // appointment the order is a walk-in and is never invoiced.
+    listAppointments({ per_page: 50 })
+      .then((all) => setPatientAppointments(all.filter((a) => a.patientRecordId === patient._id)))
+      .catch(() => setPatientAppointments([]));
   }, [patient._id]);
 
   async function saveNote() {
@@ -181,9 +190,15 @@ function PatientDetail({ user, patient, onBack }) {
     setLabSubmitting(true);
     setError("");
     try {
-      await requestLabTest({ patient_id: patient._id, branch_id: patient.branchId, test_type: selectedTest });
+      await requestLabTest({
+        patient_id: patient._id,
+        branch_id: patient.branchId,
+        test_type: selectedTest,
+        appointment_id: labAppointmentId ? Number(labAppointmentId) : null,
+      });
       setLabSuccess(true);
       setSelectedTest("");
+      setLabAppointmentId("");
       setTimeout(() => { setShowLabForm(false); setLabSuccess(false); }, 2000);
     } catch (err) {
       setError(err.message);
@@ -263,7 +278,7 @@ function PatientDetail({ user, patient, onBack }) {
           </div>
         </Card>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+        <div className="grid-fluid" style={{ "--col-min": "130px", "--grid-gap": "10px" }}>
           <Button variant="ghost" small icon={Pill} onClick={() => { setShowPrcForm(!showPrcForm); setShowLabForm(false); setShowBgForm(false); }}>
             Write Prescription
           </Button>
@@ -277,7 +292,7 @@ function PatientDetail({ user, patient, onBack }) {
         </Button>
 
         {showBgForm && (
-          <Card style={{ background: "#FDF2E0", border: "1px solid #F2E0B8" }}>
+          <Card style={{ background: "var(--tint-amber)", border: "1px solid var(--line-amber)" }}>
             <div className="f-display" style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>Request Emergency Access (FR51)</div>
             <div className="f-body" style={{ fontSize: 11.5, color: "var(--muted)", marginBottom: 10, lineHeight: 1.5 }}>
               Use this only when normal access isn't sufficient for an emergency. A mandatory reason is logged, an alert is raised immediately, and the grant is reviewed retrospectively.
@@ -310,7 +325,7 @@ function PatientDetail({ user, patient, onBack }) {
         )}
 
         {showPrcForm && (
-          <Card style={{ background: "#EEF1EE", border: "none" }}>
+          <Card style={{ background: "var(--tint-neutral)", border: "none" }}>
             <div className="f-display" style={{ fontWeight: 700, fontSize: 13, marginBottom: 10 }}>Prescribe Medication (FR28)</div>
             {prcSuccess ? (
               <div className="f-body" style={{ color: "var(--sage)", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
@@ -345,7 +360,7 @@ function PatientDetail({ user, patient, onBack }) {
         )}
 
         {showLabForm && (
-          <Card style={{ background: "#EEF1EE", border: "none" }}>
+          <Card style={{ background: "var(--tint-neutral)", border: "none" }}>
             <div className="f-display" style={{ fontWeight: 700, fontSize: 13, marginBottom: 10 }}>Request Pathology / Imaging (FR31)</div>
             {labSuccess ? (
               <div className="f-body" style={{ color: "var(--sage)", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
@@ -359,6 +374,15 @@ function PatientDetail({ user, patient, onBack }) {
                     <option value="">Choose diagnostic test</option>
                     {TESTS.map((t) => (
                       <option key={t} value={t}>{t}</option>
+                    ))}
+                  </select>
+                </div>
+                <div style={{ marginBottom: 10 }}>
+                  <label className="f-body" style={{ fontSize: 11, color: "var(--muted)", display: "block", marginBottom: 3 }}>Link to visit (bills the test to that visit)</label>
+                  <select value={labAppointmentId} onChange={(e) => setLabAppointmentId(e.target.value)} className="f-body" style={{ width: "100%", padding: 6, borderRadius: 6, border: "1px solid var(--line)", fontSize: 12 }}>
+                    <option value="">Walk-in — not linked to a visit (not invoiced)</option>
+                    {patientAppointments.map((a) => (
+                      <option key={a.id} value={a.id}>{a.date} · {a.time} · {a.status}</option>
                     ))}
                   </select>
                 </div>

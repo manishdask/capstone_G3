@@ -109,8 +109,10 @@ class BillingController extends Controller
     }
 
     /**
-     * FR40: process an electronic payment through the sandboxed gateway.
-     * No full card details are ever stored — only the gateway reference.
+     * FR40: one-shot sandbox payment (legacy). Only valid for the sandbox
+     * provider. For the Stripe provider use checkout()/confirm() instead, so the
+     * card is tokenized client-side by Stripe.js Elements and never reaches the
+     * server. No full card details are ever stored — only the gateway reference.
      */
     public function pay(Request $request, Invoice $invoice, PaymentGatewayService $gateway)
     {
@@ -118,17 +120,22 @@ class BillingController extends Controller
             return response()->json(['message' => 'Invoice is already paid.'], 409);
         }
 
+        if ($gateway->provider() === 'stripe') {
+            return response()->json(['message' => 'Use checkout to initialise a Stripe PaymentIntent.'], 400);
+        }
+
         $data = $request->validate(['method' => ['nullable', 'string', 'max:50']]);
 
-        $result = $gateway->charge((float) $invoice->total_amount, $data['method'] ?? 'card');
+        $intent = $gateway->createIntent((float) $invoice->total_amount);
+        $result = $gateway->confirmIntent($intent['gateway_reference']);
 
         $payment = DB::transaction(function () use ($invoice, $result) {
             $payment = Payment::create([
                 'invoice_id' => $invoice->id,
-                'gateway_reference' => $result['reference'],
-                'amount' => $result['amount'],
+                'gateway_reference' => $result['gateway_reference'],
+                'amount' => (float) $invoice->total_amount,
                 'status' => $result['status'],
-                'method' => $result['method'],
+                'method' => 'card',
                 'received_at' => now(),
             ]);
 
@@ -136,6 +143,67 @@ class BillingController extends Controller
             if ($result['status'] === 'success') {
                 $invoice->update(['status' => 'paid']);
             }
+
+            return $payment;
+        });
+
+        return response()->json(['data' => $payment->load('invoice')], 201);
+    }
+
+    /**
+     * FR40: initialise a checkout for the invoice. Returns client-facing config
+     * (provider, currency, amount) plus, for Stripe, a client_secret that the
+     * frontend feeds to Elements. The endpoint itself authorises nothing.
+     */
+    public function checkout(Request $request, Invoice $invoice, PaymentGatewayService $gateway)
+    {
+        if ($invoice->status === 'paid') {
+            return response()->json(['message' => 'Invoice is already paid.'], 409);
+        }
+
+        $intent = $gateway->createIntent((float) $invoice->total_amount);
+
+        return response()->json([
+            'data' => array_merge($gateway->clientConfig(), [
+                'gateway_reference' => $intent['gateway_reference'],
+                'client_secret' => $intent['client_secret'],
+                'amount' => $invoice->total_amount,
+            ]),
+        ]);
+    }
+
+    /**
+     * FR40: finalise a checkout after the gateway authorises the payment.
+     * Re-fetches the intent server-side (for Stripe this means retrieving the
+     * pi_* from Stripe — never trusting the client alone), records the payment
+     * and marks the invoice paid.
+     */
+    public function confirm(Request $request, Invoice $invoice, PaymentGatewayService $gateway)
+    {
+        if ($invoice->status === 'paid') {
+            return response()->json(['message' => 'Invoice is already paid.'], 409);
+        }
+
+        $data = $request->validate(['gateway_reference' => ['required', 'string', 'max:255']]);
+
+        $result = $gateway->confirmIntent($data['gateway_reference']);
+
+        if ($result['status'] !== 'success') {
+            return response()->json(['message' => 'Payment was not authorised.'], 402);
+        }
+
+        $payment = DB::transaction(function () use ($invoice, $result) {
+            $payment = Payment::create([
+                'invoice_id' => $invoice->id,
+                'gateway_reference' => $result['gateway_reference'],
+                'amount' => (float) $invoice->total_amount,
+                'status' => 'success',
+                'method' => 'card',
+                'received_at' => now(),
+            ]);
+
+            // FR39: record valid paid/pending/cancelled status.
+            $invoice->update(['status' => 'paid']);
 
             return $payment;
         });

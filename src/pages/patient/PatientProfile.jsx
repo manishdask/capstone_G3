@@ -31,7 +31,7 @@ export default function PatientProfile({ user, onLogout }) {
       <div style={{ padding: "0 18px" }}>
         <Card style={{ display: "flex", alignItems: "center", gap: 12 }}>
           <Avatar name={user.name} size={48} />
-          <div style={{ flex: 1 }}>
+          <div style={{ flex: 1, minWidth: 0 }}>
             <div className="f-display" style={{ fontWeight: 700, fontSize: 14.5 }}>
               {user.name}
             </div>
@@ -45,7 +45,7 @@ export default function PatientProfile({ user, onLogout }) {
         <Card style={{ marginTop: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 0" }}>
             <Mail size={14} color="var(--muted)" />
-            <span className="f-body" style={{ fontSize: 12.5, color: "var(--ink-deep)" }}>{user.email}</span>
+            <span className="f-body" style={{ fontSize: 12.5, color: "var(--ink-deep)", minWidth: 0, overflowWrap: "anywhere" }}>{user.email}</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 0 4px", borderTop: "1px solid var(--line)", marginTop: 6 }}>
             <Building2 size={14} color="var(--muted)" />
