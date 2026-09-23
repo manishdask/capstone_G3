@@ -1,6 +1,7 @@
 import React from "react";
 import { Activity, LogOut } from "lucide-react";
 import InstallButton from "../ui/InstallButton.jsx";
+import NotificationBell from "../ui/NotificationBell.jsx";
 
 // Admin renders as a full desktop dashboard, because the SRS (Section 2.4)
 // says admin access is via a standard web browser, unlike the other roles.
@@ -64,7 +65,15 @@ export default function AdminShell({ children, tabs, active, onTab, onLogout, us
             </button>
           </div>
         </div>
-        <div className="admin-content">{children}</div>
+        <div className="admin-content">
+          {/* FR20: the bell lives at the top of the content column, not in the
+              sidebar — .admin-shell is overflow:hidden and the sidebar is only
+              220px, so a dropdown anchored there would be clipped on the left. */}
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 14 }}>
+            <NotificationBell />
+          </div>
+          {children}
+        </div>
       </div>
     </div>
   );
