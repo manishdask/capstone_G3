@@ -14,31 +14,32 @@ import { listPublicBranches } from "../../services/branchService.js";
  */
 export default function PatientFind({ onSelect, user }) {
   const [branches, setBranches] = useState([]);
-  const [branchId, setBranchId] = useState(user?.branchId ? String(user.branchId) : "");
+  const [branchId, setBranchId] = useState(user?.branchId ? String(user.branchId) : "all");
   const [branchesLoading, setBranchesLoading] = useState(true);
 
   const [spec, setSpec] = useState("All");
   const [gender, setGender] = useState("Any");
   const [doctors, setDoctors] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
     listPublicBranches()
       .then((list) => {
         setBranches(list);
-        setBranchId((current) => current || String(list[0]?.id ?? ""));
+        if (user?.branchId) {
+          setBranchId(String(user.branchId));
+        }
       })
       .catch((err) => setError(err.message))
       .finally(() => setBranchesLoading(false));
-  }, []);
+  }, [user?.branchId]);
 
-  async function load(currentBranchId) {
-    if (!currentBranchId) return;
+  async function load() {
     setLoading(true);
     setError("");
     try {
-      const list = await listStaff({ staff_type: "doctor", branch_id: currentBranchId });
+      const list = await listStaff({ staff_type: "doctor" });
       setDoctors(list);
     } catch (err) {
       setError(err.message);
@@ -48,23 +49,29 @@ export default function PatientFind({ onSelect, user }) {
   }
 
   useEffect(() => {
-    setSpec("All");
-    load(branchId);
-  }, [branchId]);
+    load();
+  }, []);
 
   const specialties = useMemo(() => {
-    const unique = Array.from(new Set(doctors.map((d) => d.specialty).filter(Boolean)));
-    return ["All", ...unique];
+    const set = new Set();
+    ["Cardiology", "Dermatology", "General Medicine", "Orthopaedics", "Paediatrics"].forEach((s) => set.add(s));
+    doctors.forEach((d) => {
+      if (d.specialty) set.add(d.specialty);
+    });
+    return ["All", ...Array.from(set).sort()];
   }, [doctors]);
 
   const list = doctors.filter(
-    (d) => (spec === "All" || d.specialty === spec) && (gender === "Any" || d.gender === gender)
+    (d) =>
+      (branchId === "all" || !branchId || String(d.branchId) === String(branchId)) &&
+      (spec === "All" || d.specialty?.toLowerCase() === spec.toLowerCase()) &&
+      (gender === "Any" || d.gender?.toLowerCase() === gender.toLowerCase())
   );
 
   return (
     <div>
       <ScreenHeader title="Find a doctor" subtitle="Select branch, specialty and doctor · FR16–17" />
-      {error && <div style={{ padding: "0 18px 10px" }}><ErrorState message={error} onRetry={() => load(branchId)} /></div>}
+      {error && <div style={{ padding: "0 18px 10px" }}><ErrorState message={error} onRetry={load} /></div>}
 
       <div style={{ padding: "0 18px 10px" }}>
         <label className="f-body" style={{ fontSize: 11.5, color: "var(--muted)", display: "flex", alignItems: "center", gap: 4, marginBottom: 6 }}>
@@ -79,8 +86,9 @@ export default function PatientFind({ onSelect, user }) {
             className="f-body"
             style={{ width: "100%", padding: "9px 12px", border: "1px solid var(--line)", borderRadius: 10, fontSize: 13, background: "#fff" }}
           >
+            <option value="all">All Branches</option>
             {branches.map((b) => (
-              <option key={b.id} value={b.id}>{b.name} ({b.state})</option>
+              <option key={b.id} value={String(b.id)}>{b.name} ({b.state})</option>
             ))}
           </select>
         )}
@@ -125,7 +133,7 @@ export default function PatientFind({ onSelect, user }) {
         ) : list.length === 0 ? (
           <Card style={{ textAlign: "center", padding: 20 }}>
             <div className="f-body" style={{ fontSize: 13, color: "var(--muted)" }}>
-              No doctors match these filters at this branch.
+              No doctors match these filters{branchId !== "all" ? " at this branch" : ""}.
             </div>
           </Card>
         ) : (

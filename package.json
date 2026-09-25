@@ -3,7 +3,9 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "deploy": "vite build && node tools/deploy_release.cjs --schema-applied --clear-cache",
+        "deploy:dry": "vite build && node tools/deploy_release.cjs --dry-run"
     },
     "dependencies": {
         "lucide-react": "^0.383.0",

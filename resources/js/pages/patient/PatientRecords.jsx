@@ -12,8 +12,15 @@ import { listLabOrders, downloadLabResult } from "../../services/labService.js";
 import { listPrescriptions } from "../../services/pharmacyService.js";
 import { listInvoices, downloadInvoicePdf } from "../../services/billingService.js";
 
-export default function PatientRecords({ user }) {
-  const [tab, setTab] = useState("records");
+export default function PatientRecords({ user, initialTab = "records" }) {
+  const [tab, setTab] = useState(initialTab);
+
+  useEffect(() => {
+    if (initialTab) {
+      setTab(initialTab);
+    }
+  }, [initialTab]);
+
   const [labRequests, setLabRequests] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
   const [invoices, setInvoices] = useState([]);
