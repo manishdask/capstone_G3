@@ -46,10 +46,17 @@ export function AuthProvider({ children }) {
           setUser(me);
           persistUser(me);
         }
-      } catch {
-        setToken(null);
-        persistUser(null);
-        if (!cancelled) setUser(null);
+      } catch (err) {
+        // Only a 401 means the session is gone (expired, idle-timed-out or
+        // revoked). A timeout or 5xx says nothing about the token, so keep the
+        // cached user rather than signing a valid session out on refresh; the
+        // next API call will surface a real 401 if there is one.
+        const sessionGone = err?.status === 401 || !getStoredUser();
+        if (sessionGone) {
+          setToken(null);
+          persistUser(null);
+          if (!cancelled) setUser(null);
+        }
       } finally {
         if (!cancelled) setBooting(false);
       }

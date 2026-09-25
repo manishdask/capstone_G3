@@ -12,14 +12,12 @@ import { listLabOrders, downloadLabResult } from "../../services/labService.js";
 import { listPrescriptions } from "../../services/pharmacyService.js";
 import { listInvoices, downloadInvoicePdf } from "../../services/billingService.js";
 
-export default function PatientRecords({ user, initialTab = "records" }) {
-  const [tab, setTab] = useState(initialTab);
-
-  useEffect(() => {
-    if (initialTab) {
-      setTab(initialTab);
-    }
-  }, [initialTab]);
+/**
+ * The sub-tab is owned by AppRoot (not local state) so a pill clicked here, a
+ * dashboard quick action and a page refresh all agree on which tab is open.
+ */
+export default function PatientRecords({ user, tab = "records", onTabChange }) {
+  const setTab = (k) => onTabChange && onTabChange(k);
 
   const [labRequests, setLabRequests] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);

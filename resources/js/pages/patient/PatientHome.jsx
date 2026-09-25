@@ -147,12 +147,21 @@ export default function PatientHome({ user, goBook, onNavigate }) {
             { icon: FileText, label: "Records", screen: "records", tab: "records" },
             { icon: FlaskConical, label: "Lab reports", screen: "records", tab: "labs" },
             { icon: CreditCard, label: "Invoices", screen: "records", tab: "invoices" },
-            { icon: Bell, label: "Reminders", screen: "appts", tab: null },
+            { icon: Bell, label: "Reminders", screen: "appts", tab: "reminders" },
           ].map((a, i) => (
             <Card
               key={i}
               style={{ padding: 14, display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}
+              role="button"
+              tabIndex={0}
+              aria-label={`Open ${a.label}`}
               onClick={() => onNavigate && onNavigate(a.screen, a.tab)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onNavigate && onNavigate(a.screen, a.tab);
+                }
+              }}
             >
               <div style={{ width: 34, height: 34, borderRadius: 10, background: "var(--tint-neutral)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <a.icon size={17} color="var(--ink)" />

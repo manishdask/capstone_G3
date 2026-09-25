@@ -111,15 +111,37 @@ function getStoredJson(key) {
   }
 }
 
+const PATIENT_SCREENS = patientTabs.map((t) => t.key);
+const RECORDS_TABS = ["records", "labs", "invoices"];
+const APPTS_TABS = ["appointments", "reminders"];
+const SCREEN_KEYS = [
+  "sgh_screen_patient", "sgh_records_tab", "sgh_appts_tab", "sgh_selected_doctor",
+  "sgh_screen_doctor", "sgh_screen_staff", "sgh_screen_admin",
+];
+// The saved screens belong to one account. If a different user signs in on
+// this browser (e.g. after an idle-timeout logout that skipped handleLogout),
+// they start from their own home screen, not the previous user's page.
+const SCREEN_OWNER_KEY = "sgh_screen_owner";
+
+function clearStoredScreens() {
+  try {
+    SCREEN_KEYS.forEach((k) => localStorage.removeItem(k));
+    localStorage.removeItem(SCREEN_OWNER_KEY);
+  } catch {}
+}
+
 export default function App() {
   const { user, booting, logout } = useAuth();
   const [showPublicSite, setShowPublicSite] = useState(true);
 
   const [patientScreen, setPatientScreen] = useState(() =>
-    getStoredScreen("sgh_screen_patient", "home", ["home", "find", "appts", "records", "feedback", "profile"])
+    getStoredScreen("sgh_screen_patient", "home", PATIENT_SCREENS)
   );
   const [recordsTab, setRecordsTab] = useState(() =>
-    getStoredScreen("sgh_records_tab", "records", ["records", "labs", "invoices"])
+    getStoredScreen("sgh_records_tab", "records", RECORDS_TABS)
+  );
+  const [apptsTab, setApptsTab] = useState(() =>
+    getStoredScreen("sgh_appts_tab", "appointments", APPTS_TABS)
   );
   const [doctorScreen, setDoctorScreen] = useState(() =>
     getStoredScreen("sgh_screen_doctor", "schedule", ["schedule", "requests", "patients", "profile"])
@@ -141,6 +163,10 @@ export default function App() {
   }, [recordsTab]);
 
   useEffect(() => {
+    try { localStorage.setItem("sgh_appts_tab", apptsTab); } catch {}
+  }, [apptsTab]);
+
+  useEffect(() => {
     try {
       if (selectedDoctor) localStorage.setItem("sgh_selected_doctor", JSON.stringify(selectedDoctor));
       else localStorage.removeItem("sgh_selected_doctor");
@@ -159,23 +185,41 @@ export default function App() {
     try { localStorage.setItem("sgh_screen_admin", adminScreen); } catch {}
   }, [adminScreen]);
 
-  function handlePatientNavigate(screen, tab = "records") {
-    setPatientScreen(screen);
-    if (screen === "records") {
-      setRecordsTab(tab || "records");
-    }
+  // Quick actions and the tab bar both land here. `tab` picks the sub-tab of
+  // screens that have one (records: records/labs/invoices; appts:
+  // appointments/reminders); an unknown screen falls back to Home.
+  function handlePatientNavigate(screen, tab) {
+    const target = PATIENT_SCREENS.includes(screen) ? screen : "home";
+    setPatientScreen(target);
+    if (target === "records") setRecordsTab(RECORDS_TABS.includes(tab) ? tab : "records");
+    if (target === "appts") setApptsTab(APPTS_TABS.includes(tab) ? tab : "appointments");
     setSelectedDoctor(null);
   }
 
+  function resetScreens() {
+    setPatientScreen("home");
+    setRecordsTab("records");
+    setApptsTab("appointments");
+    setSelectedDoctor(null);
+    setDoctorScreen("schedule");
+    setStaffScreen("appts");
+    setAdminScreen("overview");
+  }
+
+  const userId = user?.id ?? null;
+  useEffect(() => {
+    if (userId == null) return;
+    let owner = null;
+    try { owner = localStorage.getItem(SCREEN_OWNER_KEY); } catch {}
+    if (owner !== String(userId)) {
+      if (owner !== null) resetScreens();
+      try { localStorage.setItem(SCREEN_OWNER_KEY, String(userId)); } catch {}
+    }
+  }, [userId]);
+
   function handleLogout() {
-    try {
-      localStorage.removeItem("sgh_screen_patient");
-      localStorage.removeItem("sgh_records_tab");
-      localStorage.removeItem("sgh_selected_doctor");
-      localStorage.removeItem("sgh_screen_doctor");
-      localStorage.removeItem("sgh_screen_staff");
-      localStorage.removeItem("sgh_screen_admin");
-    } catch {}
+    clearStoredScreens();
+    resetScreens();
     logout();
   }
 
@@ -227,15 +271,9 @@ export default function App() {
             tabs={patientTabs}
             active={patientScreen}
             user={user}
-            onTab={(k) => {
-              setPatientScreen(k);
-              if (k === "records") {
-                setRecordsTab("records");
-              }
-              setSelectedDoctor(null);
-            }}
+            onTab={(k) => handlePatientNavigate(k)}
           >
-            <ErrorBoundary onReset={() => { setPatientScreen("home"); setSelectedDoctor(null); setRecordsTab("records"); }}>
+            <ErrorBoundary onReset={() => handlePatientNavigate("home")}>
               {patientScreen === "home" && (
                 <PatientHome
                   user={user}
@@ -253,8 +291,8 @@ export default function App() {
                   onBack={() => setSelectedDoctor(null)}
                 />
               )}
-              {patientScreen === "appts" && <PatientAppointments />}
-              {patientScreen === "records" && <PatientRecords user={user} initialTab={recordsTab} />}
+              {patientScreen === "appts" && <PatientAppointments tab={apptsTab} onTabChange={setApptsTab} />}
+              {patientScreen === "records" && <PatientRecords user={user} tab={recordsTab} onTabChange={setRecordsTab} />}
               {patientScreen === "feedback" && <PatientFeedback />}
               {patientScreen === "profile" && <PatientProfile user={user} onLogout={handleLogout} />}
             </ErrorBoundary>

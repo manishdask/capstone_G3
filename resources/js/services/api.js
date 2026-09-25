@@ -50,6 +50,8 @@ export async function apiFetch(path, options = {}) {
       method,
       headers,
       body: body === undefined ? undefined : isFormData ? body : JSON.stringify(body),
+      // API responses are per-user; no cache layer may ever answer for them.
+      cache: "no-store",
       signal: timeoutController.signal,
     });
   } catch (networkError) {
