@@ -8,7 +8,10 @@
 return [
     // Gateway backend: "sandbox" (no credentials, simulation only) or "stripe"
     // (real Stripe test-mode via PaymentIntents).
-    'provider' => env('PAYMENT_GATEWAY_PROVIDER', 'sandbox'),
+    // Unset → "stripe" whenever a secret key is configured, otherwise "sandbox",
+    // so adding STRIPE_KEY/STRIPE_SECRET to a .env is enough to go live in test
+    // mode. An explicit PAYMENT_GATEWAY_PROVIDER=sandbox still forces sandbox.
+    'provider' => env('PAYMENT_GATEWAY_PROVIDER', (env('STRIPE_SECRET') ?: env('PAYMENT_GATEWAY_KEY')) ? 'stripe' : 'sandbox'),
 
     // Stripe SECRET key (sk_test_...) — used only server-side to create and
     // confirm PaymentIntents and to issue refunds. Never exposed to the client.
