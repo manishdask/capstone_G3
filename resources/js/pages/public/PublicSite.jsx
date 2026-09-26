@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from "react";
 import InstallButton from "../../components/ui/InstallButton.jsx";
+import { SITE_INFO_LINKS } from "./InfoPageLayout.jsx";
 import {
   HeartPulse, Siren, Stethoscope, MapPin, Phone, Car, Train, Wifi, Waves,
   TreePine, Languages, ArrowRight, Search, Users, Building2, ShieldCheck,
@@ -62,7 +63,6 @@ const FOOTER_COLUMNS = [
   ] },
   { h: "For Patients", items: [
     { label: "Patient Portal", portal: true },
-    { label: "Privacy & Records", href: "/privacy-policy" },
     { label: "Rights & Responsibilities", href: "/privacy-policy#your-rights" },
   ] },
   { h: "Visitors & GPs", items: [
@@ -71,6 +71,8 @@ const FOOTER_COLUMNS = [
     { label: "Public Transport", href: "#pub-amenities" },
     { label: "GP Referrals", href: "#pub-locations" },
   ] },
+  // Same four pages, in the same order, as the list on each info page itself.
+  { h: "Site information", items: SITE_INFO_LINKS.map(([href, label]) => ({ label, href })) },
 ];
 
 // Accent colour matching the screenshot's teal/cyan scheme (used for eyebrows,
@@ -124,9 +126,10 @@ export default function PublicSite({ onEnterPortal }) {
         .pub-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
         .pub-grid--2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
         .pub-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
-        .pub-footer-grid { display: grid; grid-template-columns: 2fr repeat(4, 1fr); gap: 28px; }
+        .pub-footer-grid { display: grid; grid-template-columns: 1.6fr repeat(5, 1fr); gap: 24px; }
+        .pub-footer-heading { font-size: 13px; font-weight: 700; color: var(--amber); margin: 0 0 10px; }
         .pub-footer-link {
-          display: inline-block; font-size: 11.5px; color: var(--on-dark-muted); text-decoration: none;
+          display: inline-block; font-size: 12.5px; line-height: 1.4; color: var(--on-dark-muted); text-decoration: none;
           background: none; border: none; padding: 2px 0; margin: 0; cursor: pointer; text-align: left;
           transition: color 0.15s ease;
         }
@@ -439,7 +442,7 @@ export default function PublicSite({ onEnterPortal }) {
           </div>
           {FOOTER_COLUMNS.map((col) => (
             <nav key={col.h} aria-label={col.h}>
-              <div className="f-body" style={{ fontSize: 12, fontWeight: 700, color: "#fff", marginBottom: 10 }}>{col.h}</div>
+              <h2 className="f-body pub-footer-heading">{col.h}</h2>
               <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
                 {col.items.map((item) => (
                   <li key={item.label} style={{ marginBottom: 6 }}>
@@ -465,8 +468,9 @@ export default function PublicSite({ onEnterPortal }) {
           ))}
         </div>
         <div style={{ maxWidth: 1160, margin: "0 auto", borderTop: "1px solid var(--on-dark-line)", paddingTop: 18 }}>
-          <p className="f-body" style={{ fontSize: 11, color: "var(--on-dark-muted)", textAlign: "center" }}>
-            © 2026 St George Hospital Management System. All rights reserved. NSW Health Public Accreditations.
+          <p className="f-body" style={{ fontSize: 11.5, color: "var(--on-dark-muted)", textAlign: "center", lineHeight: 1.6 }}>
+            © 2026 CPRO306 Group 3 · Student project — not a real hospital, and not affiliated with NSW Health.{" "}
+            <a className="pub-footer-link" style={{ fontSize: 11.5 }} href="/copyright-and-disclaimer">Copyright and disclaimer</a>
           </p>
         </div>
       </footer>

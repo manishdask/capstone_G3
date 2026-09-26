@@ -9,6 +9,7 @@ import Login from "./pages/auth/Login.jsx";
 import MfaSetup from "./pages/auth/MfaSetup.jsx";
 import PublicSite from "./pages/public/PublicSite.jsx";
 import PrivacyPolicy from "./pages/public/PrivacyPolicy.jsx";
+import { AccessibilityPage, RightToInformationPage, CopyrightDisclaimerPage } from "./pages/public/SiteInfoPages.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
 import PatientHome from "./pages/patient/PatientHome.jsx";
@@ -95,10 +96,18 @@ const adminTabs = [
   { key: "audit", label: "Audit log", icon: ShieldCheck },
 ];
 
-const PRIVACY_POLICY_PATH = "/privacy-policy";
+// Standalone "Site information" pages, each a real URL (the Laravel catch-all
+// serves this SPA for any path) so they can be linked and bookmarked, signed
+// in or out. Matched once from the path — no router library, per convention.
+const SITE_INFO_PAGES = {
+  "/privacy-policy": PrivacyPolicy,
+  "/accessibility": AccessibilityPage,
+  "/right-to-information": RightToInformationPage,
+  "/copyright-and-disclaimer": CopyrightDisclaimerPage,
+};
 
-function isPrivacyPolicyPath() {
-  return window.location.pathname.replace(/\/+$/, "") === PRIVACY_POLICY_PATH;
+function siteInfoPageForPath() {
+  return SITE_INFO_PAGES[window.location.pathname.replace(/\/+$/, "")] || null;
 }
 
 function getStoredScreen(key, fallback, allowedList) {
@@ -237,11 +246,9 @@ export default function App() {
     ? staffScreen
     : visibleStaffTabs[0]?.key || "appts";
 
-  // /privacy-policy is a real URL (the Laravel catch-all serves this SPA for
-  // any path), so it can be linked, bookmarked and opened signed in or out.
-  // Read from the path once — no router library, per the app's convention.
-  if (isPrivacyPolicyPath()) {
-    return <PrivacyPolicy />;
+  const SiteInfoPage = siteInfoPageForPath();
+  if (SiteInfoPage) {
+    return <SiteInfoPage />;
   }
 
   if (booting) {
