@@ -25,6 +25,7 @@ export default function DoctorRequests() {
   const [actingId, setActingId] = useState(null);
   const [reasonFor, setReasonFor] = useState(null);
   const [reason, setReason] = useState("");
+  const [overdueCount, setOverdueCount] = useState(0);
 
   async function load() {
     setLoading(true);
@@ -32,6 +33,7 @@ export default function DoctorRequests() {
     try {
       const today = toDateKey(new Date());
       const confirmed = await listAppointments({ status: "confirmed" });
+      setOverdueCount(confirmed.filter((a) => a.rawDate < today).length);
       setAppointments(
         confirmed
           .filter((a) => a.rawDate >= today)
@@ -81,12 +83,23 @@ export default function DoctorRequests() {
           {appointments.length === 0 ? (
             <Card style={{ textAlign: "center", padding: 20 }}>
               <div className="f-body" style={{ fontSize: 13, color: "var(--muted)" }}>
-                No upcoming appointments.
+                No confirmed appointments from today onward.
               </div>
+              {overdueCount > 0 && (
+                <div className="f-body" style={{ fontSize: 12, color: "var(--amber-deep)", marginTop: 6 }}>
+                  {overdueCount} past visit{overdueCount === 1 ? " is" : "s are"} still awaiting completion — see Schedule.
+                </div>
+              )}
             </Card>
           ) : (
-            appointments.map((r) => (
-              <Card key={r.id}>
+            appointments.map((r, i) => (
+              <React.Fragment key={r.id}>
+              {(i === 0 || appointments[i - 1].rawDate !== r.rawDate) && (
+                <div className="f-display" style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-deep)", marginTop: i === 0 ? 0 : 8 }}>
+                  {r.date}
+                </div>
+              )}
+              <Card>
                 <div style={{ display: "flex", gap: 12 }}>
                   <Avatar name={r.patientName} size={36} bg="var(--amber-deep)" />
                   <div style={{ flex: 1 }}>
@@ -128,6 +141,7 @@ export default function DoctorRequests() {
                   </div>
                 )}
               </Card>
+              </React.Fragment>
             ))
           )}
         </div>
