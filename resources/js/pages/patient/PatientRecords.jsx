@@ -10,7 +10,7 @@ import StripeCheckoutModal from "../../components/ui/StripeCheckoutModal.jsx";
 import { statusTone } from "../../utils/statusTone.js";
 import { listLabOrders, downloadLabResult } from "../../services/labService.js";
 import { listPrescriptions } from "../../services/pharmacyService.js";
-import { listInvoices, downloadInvoicePdf } from "../../services/billingService.js";
+import { listInvoices, downloadInvoicePdf, listPayments } from "../../services/billingService.js";
 
 /**
  * The sub-tab is owned by AppRoot (not local state) so a pill clicked here, a
@@ -22,6 +22,7 @@ export default function PatientRecords({ user, tab = "records", onTabChange }) {
   const [labRequests, setLabRequests] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
   const [invoices, setInvoices] = useState([]);
+  const [payments, setPayments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -31,10 +32,17 @@ export default function PatientRecords({ user, tab = "records", onTabChange }) {
     setLoading(true);
     setError("");
     try {
-      const [labs, rx, inv] = await Promise.all([listLabOrders(), listPrescriptions(), listInvoices()]);
+      const [labs, rx, inv, pay] = await Promise.all([
+        listLabOrders(),
+        listPrescriptions(),
+        listInvoices(),
+        // Payment history is secondary — never fail the records page on it.
+        listPayments().catch(() => []),
+      ]);
       setLabRequests(labs);
       setPrescriptions(rx);
       setInvoices(inv);
+      setPayments(pay);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -198,6 +206,32 @@ export default function PatientRecords({ user, tab = "records", onTabChange }) {
                         Pay online
                       </Button>
                     )}
+                  </div>
+                </Card>
+              ))
+            )}
+
+            <div className="f-display" style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-deep)", margin: "16px 0 8px" }}>
+              Payment history
+            </div>
+            {payments.length === 0 ? (
+              <Card style={{ textAlign: "center", padding: 18 }}>
+                <div className="f-body" style={{ fontSize: 12.5, color: "var(--muted)" }}>No payments made yet.</div>
+              </Card>
+            ) : (
+              payments.map((p) => (
+                <Card key={p.id} style={{ marginBottom: 8, padding: "12px 14px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10 }}>
+                    <div style={{ minWidth: 0 }}>
+                      <div className="f-body" style={{ fontSize: 12.5, fontWeight: 700, color: "var(--ink-deep)" }}>
+                        ${p.amount.toFixed(2)} {p.currency}
+                        <span className="f-body" style={{ fontWeight: 500, color: "var(--muted)" }}> · INV-{p.invoiceId}</span>
+                      </div>
+                      <div className="f-body" style={{ fontSize: 11.5, color: "var(--muted)" }}>
+                        {p.paidOn || "—"} · Card{p.provider === "stripe" ? " (Stripe)" : ""}
+                      </div>
+                    </div>
+                    <Badge tone={p.status === "refunded" ? "default" : "success"}>{p.status === "refunded" ? "Refunded" : "Paid"}</Badge>
                   </div>
                 </Card>
               ))

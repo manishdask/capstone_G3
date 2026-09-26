@@ -12,7 +12,9 @@ return [
 
     // Stripe SECRET key (sk_test_...) — used only server-side to create and
     // confirm PaymentIntents and to issue refunds. Never exposed to the client.
-    'secret_key' => env('PAYMENT_GATEWAY_KEY'),
+    // STRIPE_SECRET (the conventional name, also in config/services.php) wins;
+    // PAYMENT_GATEWAY_KEY is kept so existing server .env files still work.
+    'secret_key' => env('STRIPE_SECRET') ?: env('PAYMENT_GATEWAY_KEY'),
 
     // Stripe webhook signing secret (whsec_...) — reserved for future
     // asynchronous webhook reconciliation. Not required by the synchronous
@@ -22,7 +24,7 @@ return [
     // Stripe PUBLISHABLE key (pk_test_...) — safe to send to the browser; the
     // Stripe.js Elements card field is initialised with it so raw card details
     // are tokenized client-side and never touch the server.
-    'publishable_key' => env('PAYMENT_GATEWAY_PUBLISHABLE'),
+    'publishable_key' => env('STRIPE_KEY') ?: env('PAYMENT_GATEWAY_PUBLISHABLE'),
 
     // ISO 4217 currency code for Stripe charges.
     'currency' => env('PAYMENT_GATEWAY_CURRENCY', 'aud'),

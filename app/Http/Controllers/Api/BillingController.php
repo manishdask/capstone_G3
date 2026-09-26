@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Role;
+use App\Services\InvoicePaymentService;
 use App\Services\PaymentGatewayService;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Stripe\Exception\ApiErrorException;
 
 /**
  * FR36-FR40: itemised invoices, payment status tracking, sandboxed gateway integration.
@@ -114,8 +116,12 @@ class BillingController extends Controller
      * card is tokenized client-side by Stripe.js Elements and never reaches the
      * server. No full card details are ever stored — only the gateway reference.
      */
-    public function pay(Request $request, Invoice $invoice, PaymentGatewayService $gateway)
+    public function pay(Request $request, Invoice $invoice, PaymentGatewayService $gateway, InvoicePaymentService $payments)
     {
+        if (! $payments->mayPay($request->user(), $invoice)) {
+            abort(403, 'You are not authorised to pay this invoice.');
+        }
+
         if ($invoice->status === 'paid') {
             return response()->json(['message' => 'Invoice is already paid.'], 409);
         }
@@ -133,10 +139,13 @@ class BillingController extends Controller
             $payment = Payment::create([
                 'invoice_id' => $invoice->id,
                 'gateway_reference' => $result['gateway_reference'],
+                'provider' => $result['provider'],
                 'amount' => (float) $invoice->total_amount,
+                'currency' => strtoupper($gateway->currency()),
                 'status' => $result['status'],
                 'method' => 'card',
                 'received_at' => now(),
+                'paid_at' => $result['status'] === 'success' ? now() : null,
             ]);
 
             // FR39: record valid paid/pending/cancelled status.
@@ -151,63 +160,47 @@ class BillingController extends Controller
     }
 
     /**
-     * FR40: initialise a checkout for the invoice. Returns client-facing config
-     * (provider, currency, amount) plus, for Stripe, a client_secret that the
-     * frontend feeds to Elements. The endpoint itself authorises nothing.
+     * FR40: initialise (or resume) a checkout. The amount is the invoice total
+     * from MySQL; the invoice's single open PaymentIntent is reused so a second
+     * tab or double tap can never produce a second charge. Returns client-safe
+     * config: provider, publishable key, client_secret, amount, currency.
      */
-    public function checkout(Request $request, Invoice $invoice, PaymentGatewayService $gateway)
+    public function checkout(Request $request, Invoice $invoice, InvoicePaymentService $payments)
     {
-        if ($invoice->status === 'paid') {
-            return response()->json(['message' => 'Invoice is already paid.'], 409);
-        }
-
-        $intent = $gateway->createIntent((float) $invoice->total_amount);
-
-        return response()->json([
-            'data' => array_merge($gateway->clientConfig(), [
-                'gateway_reference' => $intent['gateway_reference'],
-                'client_secret' => $intent['client_secret'],
-                'amount' => $invoice->total_amount,
-            ]),
-        ]);
+        return $this->viaGateway(fn () => response()->json([
+            'data' => $payments->checkout($request->user(), $invoice),
+        ]));
     }
 
     /**
-     * FR40: finalise a checkout after the gateway authorises the payment.
-     * Re-fetches the intent server-side (for Stripe this means retrieving the
-     * pi_* from Stripe — never trusting the client alone), records the payment
-     * and marks the invoice paid.
+     * FR40: finalise a checkout. The intent is re-retrieved from Stripe on the
+     * server and must be succeeded, for this invoice, in AUD, for its exact
+     * total — the browser's word is never enough to mark an invoice paid.
      */
-    public function confirm(Request $request, Invoice $invoice, PaymentGatewayService $gateway)
+    public function confirm(Request $request, Invoice $invoice, InvoicePaymentService $payments)
     {
-        if ($invoice->status === 'paid') {
-            return response()->json(['message' => 'Invoice is already paid.'], 409);
-        }
-
         $data = $request->validate(['gateway_reference' => ['required', 'string', 'max:255']]);
 
-        $result = $gateway->confirmIntent($data['gateway_reference']);
+        return $this->viaGateway(fn () => response()->json([
+            'data' => $payments->confirm($request->user(), $invoice, $data['gateway_reference']),
+        ], 201));
+    }
 
-        if ($result['status'] !== 'success') {
-            return response()->json(['message' => 'Payment was not authorised.'], 402);
+    /**
+     * A Stripe outage or rejected request becomes a clear 502 instead of a
+     * 500. The key is never part of a Stripe error message, so nothing secret
+     * reaches the client or the log.
+     */
+    private function viaGateway(callable $call)
+    {
+        try {
+            return $call();
+        } catch (ApiErrorException $e) {
+            report($e);
+
+            return response()->json([
+                'message' => 'The payment provider could not be reached. No money was taken — please try again shortly.',
+            ], 502);
         }
-
-        $payment = DB::transaction(function () use ($invoice, $result) {
-            $payment = Payment::create([
-                'invoice_id' => $invoice->id,
-                'gateway_reference' => $result['gateway_reference'],
-                'amount' => (float) $invoice->total_amount,
-                'status' => 'success',
-                'method' => 'card',
-                'received_at' => now(),
-            ]);
-
-            // FR39: record valid paid/pending/cancelled status.
-            $invoice->update(['status' => 'paid']);
-
-            return $payment;
-        });
-
-        return response()->json(['data' => $payment->load('invoice')], 201);
     }
 }
