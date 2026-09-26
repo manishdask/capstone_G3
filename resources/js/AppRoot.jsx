@@ -8,6 +8,7 @@ import ErrorBoundary from "./components/ui/ErrorBoundary.jsx";
 import Login from "./pages/auth/Login.jsx";
 import MfaSetup from "./pages/auth/MfaSetup.jsx";
 import PublicSite from "./pages/public/PublicSite.jsx";
+import PrivacyPolicy from "./pages/public/PrivacyPolicy.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
 import PatientHome from "./pages/patient/PatientHome.jsx";
@@ -93,6 +94,12 @@ const adminTabs = [
   { key: "reports", label: "Reports", icon: TrendingUp },
   { key: "audit", label: "Audit log", icon: ShieldCheck },
 ];
+
+const PRIVACY_POLICY_PATH = "/privacy-policy";
+
+function isPrivacyPolicyPath() {
+  return window.location.pathname.replace(/\/+$/, "") === PRIVACY_POLICY_PATH;
+}
 
 function getStoredScreen(key, fallback, allowedList) {
   try {
@@ -229,6 +236,13 @@ export default function App() {
   const activeStaffScreen = visibleStaffTabs.some((t) => t.key === staffScreen)
     ? staffScreen
     : visibleStaffTabs[0]?.key || "appts";
+
+  // /privacy-policy is a real URL (the Laravel catch-all serves this SPA for
+  // any path), so it can be linked, bookmarked and opened signed in or out.
+  // Read from the path once — no router library, per the app's convention.
+  if (isPrivacyPolicyPath()) {
+    return <PrivacyPolicy />;
+  }
 
   if (booting) {
     return (

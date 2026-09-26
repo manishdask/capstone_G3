@@ -44,6 +44,35 @@ const LOCATIONS = [
 
 const QUICK_TAGS = ["Cardiology", "Trauma", "Orthopedics", "Maternity", "Parking"];
 
+// Every footer item points at content that exists: an on-page section, the
+// services grid filtered by `search` (matched like the hero search box), the
+// portal, or the privacy policy page. Topics with no page behind them (history,
+// pre-admission, surgery prep) were removed rather than left as dead text.
+const FOOTER_COLUMNS = [
+  { h: "About Us", items: [
+    { label: "About Our Hospital", href: "#pub-home" },
+    { label: "Executive Leadership", href: "#pub-doctors" },
+    { label: "General Contact", href: "#pub-locations" },
+  ] },
+  { h: "Clinical Services", items: [
+    { label: "Cardiology & Heart", href: "#pub-services", search: "Cardiology" },
+    { label: "Oncology & Chemotherapy", href: "#pub-services", search: "Oncology" },
+    { label: "Orthopaedics & Joint", href: "#pub-services", search: "Orthopedics" },
+    { label: "Intensive Care Unit", href: "#pub-services", search: "Critical care" },
+  ] },
+  { h: "For Patients", items: [
+    { label: "Patient Portal", portal: true },
+    { label: "Privacy & Records", href: "/privacy-policy" },
+    { label: "Rights & Responsibilities", href: "/privacy-policy#your-rights" },
+  ] },
+  { h: "Visitors & GPs", items: [
+    { label: "Parking Rates", href: "#pub-amenities" },
+    { label: "Visiting Hours", href: "#pub-hours" },
+    { label: "Public Transport", href: "#pub-amenities" },
+    { label: "GP Referrals", href: "#pub-locations" },
+  ] },
+];
+
 // Accent colour matching the screenshot's teal/cyan scheme (used for eyebrows,
 // stat numbers, badges, tags) — kept local so it doesn't touch global tokens.
 const ACCENT = "var(--ink-mid)";
@@ -96,6 +125,16 @@ export default function PublicSite({ onEnterPortal }) {
         .pub-grid--2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
         .pub-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
         .pub-footer-grid { display: grid; grid-template-columns: 2fr repeat(4, 1fr); gap: 28px; }
+        .pub-footer-link {
+          display: inline-block; font-size: 11.5px; color: var(--on-dark-muted); text-decoration: none;
+          background: none; border: none; padding: 2px 0; margin: 0; cursor: pointer; text-align: left;
+          transition: color 0.15s ease;
+        }
+        .pub-footer-link:hover { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+        .pub-footer-link:focus-visible { color: #fff; outline: 2px solid var(--amber); outline-offset: 3px; border-radius: 3px; }
+        /* In-page targets must clear the sticky header when jumped to. */
+        .pub-root [id^="pub-"] { scroll-margin-top: 96px; }
+        .pub-root a:focus-visible, .pub-root button:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
         @media (max-width: 980px) {
           .pub-grid, .pub-grid--2 { grid-template-columns: repeat(2, 1fr); }
           .pub-stats { grid-template-columns: repeat(2, 1fr); }
@@ -134,6 +173,7 @@ export default function PublicSite({ onEnterPortal }) {
           .pub-header-actions { flex: 1 0 100%; justify-content: stretch; }
           .pub-header-actions > * { flex: 1 1 0; min-width: 0; }
           .pub-portal-btn { width: 100%; padding: 10px 12px; font-size: 12.5px; }
+          .pub-root [id^="pub-"] { scroll-margin-top: 140px; }
           .pub-brand-sub { font-size: 10px; }
         }
         @media (max-width: 360px) {
@@ -186,7 +226,7 @@ export default function PublicSite({ onEnterPortal }) {
       </header>
 
       {/* ---------- Emergency bar ---------- */}
-      <div style={{ background: "var(--ink-deep)" }}>
+      <div id="pub-hours" style={{ background: "var(--ink-deep)" }}>
         <div style={{ maxWidth: 1160, margin: "0 auto", padding: "9px 20px", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "center", gap: 20 }}>
           <span className="f-body" style={{ display: "flex", alignItems: "center", gap: 7, fontSize: 12, fontWeight: 700, color: "#fff" }}>
             <span style={{ width: 8, height: 8, borderRadius: "50%", background: "var(--rose)", animation: "pubPulse 1.6s ease-in-out infinite" }} />
@@ -397,18 +437,31 @@ export default function PublicSite({ onEnterPortal }) {
             </p>
             <div className="f-body" style={{ fontSize: 12, color: "#fff", fontWeight: 700 }}>Triage Hotline: (02) 9113 1111</div>
           </div>
-          {[
-            { h: "About Us", items: ["About Our Hospital", "Hospital History", "Executive Leadership", "General Contact"] },
-            { h: "Clinical Services", items: ["Cardiology & Heart", "Oncology & Chemotherapy", "Orthopaedics & Joint", "Intensive Care Unit"] },
-            { h: "For Patients", items: ["Pre-Admission Guide", "Preparing for Surgery", "Rights & Responsibilities", "Privacy & Records"] },
-            { h: "Visitors & GPs", items: ["Parking Rates", "Visiting Hours", "Public Transport", "GP Referrals"] },
-          ].map((col) => (
-            <div key={col.h}>
+          {FOOTER_COLUMNS.map((col) => (
+            <nav key={col.h} aria-label={col.h}>
               <div className="f-body" style={{ fontSize: 12, fontWeight: 700, color: "#fff", marginBottom: 10 }}>{col.h}</div>
-              {col.items.map((i) => (
-                <div key={i} className="f-body" style={{ fontSize: 11.5, color: "var(--on-dark-muted)", marginBottom: 8 }}>{i}</div>
-              ))}
-            </div>
+              <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                {col.items.map((item) => (
+                  <li key={item.label} style={{ marginBottom: 6 }}>
+                    {item.portal ? (
+                      <button type="button" className="f-body pub-footer-link" onClick={onEnterPortal}>
+                        {item.label}
+                      </button>
+                    ) : (
+                      <a
+                        className="f-body pub-footer-link"
+                        href={item.href}
+                        // Specialty links narrow the services grid the same way
+                        // the hero search does, then the anchor scrolls to it.
+                        onClick={item.search ? () => setSearch(item.search) : undefined}
+                      >
+                        {item.label}
+                      </a>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </nav>
           ))}
         </div>
         <div style={{ maxWidth: 1160, margin: "0 auto", borderTop: "1px solid var(--on-dark-line)", paddingTop: 18 }}>
