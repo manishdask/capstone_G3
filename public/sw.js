@@ -1,92 +1,77 @@
 // SGH HMS — Service Worker (sw.js)
 // Provides asset caching for PWA support.
-// Strategy: Cache-first for static assets, network-first for API/dynamic content.
+//
+// WHAT IT MAY CACHE: only Vite's fingerprinted build output (/build/assets/*)
+// and the manifest. Those files are immutable — a new build gets new names —
+// so serving them cache-first can never show stale code.
+//
+// WHAT IT MUST NEVER TOUCH: /api/*. The API shares this origin, and the Cache
+// API keys entries by URL alone, ignoring the Authorization header. Caching
+// /api/auth/me therefore handed the first signed-in user's profile (e.g. an
+// Admin) to every later user of the same browser on refresh — a Patient
+// reloaded into the Admin shell, and was shown the Admin's cached reports.
+// Per-user, per-token data has no place in a shared cache.
 
-const CACHE_NAME = "sgh-hms-v1.0.1";
+// Bumping this name makes `activate` delete every older cache, which is how
+// browsers still holding API responses from sgh-hms-v1.0.1 get cleaned up.
+const CACHE_NAME = "sgh-hms-v2";
 
-// Assets to pre-cache on install
-const PRECACHE_ASSETS = [
-  "/",
-  "/index.html",
-  "/manifest.json"
-];
+const PRECACHE_ASSETS = ["/manifest.json"];
 
-// -----------------------------------------------
-// INSTALL: Pre-cache core shell
-// -----------------------------------------------
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log("[SGH SW] Pre-caching app shell");
-      return cache.addAll(PRECACHE_ASSETS);
-    }).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE_ASSETS))
+      .then(() => self.skipWaiting())
   );
 });
 
-// -----------------------------------------------
-// ACTIVATE: Clean up old caches
-// -----------------------------------------------
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) =>
-      Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => {
-            console.log("[SGH SW] Removing old cache:", name);
-            return caches.delete(name);
-          })
-      )
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then((names) => Promise.all(names.filter((n) => n !== CACHE_NAME).map((n) => caches.delete(n))))
+      .then(() => self.clients.claim())
   );
 });
 
-// -----------------------------------------------
-// FETCH: Cache-first with network fallback
-// -----------------------------------------------
+function isCacheableAsset(url) {
+  return url.pathname.startsWith("/build/assets/") || url.pathname === "/manifest.json";
+}
+
 self.addEventListener("fetch", (event) => {
-  // Skip non-GET and cross-origin requests (the backend API lives on a
-  // different origin/port and must never be served from this cache).
   if (event.request.method !== "GET") return;
 
   const url = new URL(event.request.url);
   if (url.origin !== self.location.origin) return;
 
-  // For navigation requests: network-first, fallback to cached /index.html
+  // Never intercept the API — let every request go straight to the network.
+  if (url.pathname === "/api" || url.pathname.startsWith("/api/")) return;
+
+  // Navigations always come from the network: the Blade shell names the
+  // current build's asset hashes, so a cached copy would pin an old release.
+  // The offline fallback is a plain message rather than a stale shell.
   if (event.request.mode === "navigate") {
     event.respondWith(
       fetch(event.request).catch(() =>
-        caches.match("/index.html").then((cached) => cached || new Response("Offline"))
+        new Response("St George HMS is offline. Reconnect and refresh.", {
+          headers: { "Content-Type": "text/plain; charset=utf-8" },
+        })
       )
     );
     return;
   }
 
-  // For static assets: cache-first strategy
+  if (!isCacheableAsset(url)) return;
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
-
       return fetch(event.request).then((response) => {
-        // Only cache successful same-origin responses
-        if (!response || response.status !== 200 || response.type === "opaque") {
-          return response;
+        if (response && response.status === 200 && response.type === "basic") {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
         }
-
-        const cloned = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, cloned);
-        });
-
         return response;
-      }).catch(() => {
-        // Return offline fallback for image/font requests
-        if (event.request.destination === "image") {
-          return new Response(
-            `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100"><rect width="100" height="100" fill="#F5F6F2"/></svg>`,
-            { headers: { "Content-Type": "image/svg+xml" } }
-          );
-        }
       });
     })
   );

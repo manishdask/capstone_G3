@@ -1,5 +1,6 @@
 import React from "react";
 import ChatbotWidget from "../ui/ChatbotWidget.jsx";
+import NotificationBell from "../ui/NotificationBell.jsx";
 
 // Wraps Patient/Doctor/Staff screens in a phone mockup, because the SRS
 // (Section 2.5) requires these roles to be a native mobile app, not a website.
@@ -29,6 +30,12 @@ export default function PhoneFrame({ children, tabs, active, onTab, role, user }
               zIndex: 10,
             }}
           />
+          {/* FR20: the bell sits in the 26px status band beside the notch, which
+              paddingTop already reserves — so it never overlaps page content and
+              stays put while the screen below it scrolls. */}
+          <div style={{ position: "absolute", top: 0, right: 6, height: 26, display: "flex", alignItems: "center", zIndex: 20 }}>
+            <NotificationBell />
+          </div>
           <div style={{ flex: 1, overflowY: "auto", paddingTop: 26 }}>{children}</div>
           <div style={{ display: "flex", borderTop: "1px solid var(--line)", background: "var(--surface)", padding: "8px 6px 14px", flexShrink: 0 }}>
             {tabs.map((t) => (

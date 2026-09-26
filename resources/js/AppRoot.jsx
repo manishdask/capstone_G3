@@ -1,9 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Home, Search, Calendar, FileText, User, ClipboardList, Users, Pill, Activity, BarChart3, Building2, TrendingUp, ShieldCheck, FlaskConical, Settings, MessageSquare, FileEdit, ShieldAlert, CreditCard } from "lucide-react";
 
 import PhoneFrame from "./components/frames/PhoneFrame.jsx";
 import AdminShell from "./components/frames/AdminShell.jsx";
 import IdleTimer from "./components/ui/IdleTimer.jsx";
+import ErrorBoundary from "./components/ui/ErrorBoundary.jsx";
 import Login from "./pages/auth/Login.jsx";
 import MfaSetup from "./pages/auth/MfaSetup.jsx";
 import PublicSite from "./pages/public/PublicSite.jsx";
@@ -65,10 +66,6 @@ const staffTabs = [
   { key: "profile", label: "Profile", icon: User },
 ];
 
-// Receptionist, Nurse, Pharmacist and Lab Technician all share the "staff"
-// shell, but not the same API permissions — showing everyone every tab meant a
-// Lab Technician opening Vitals or Pharmacy got a 403 error card. Each role
-// sees only the screens its own role middleware actually allows.
 const staffTabsByType = {
   receptionist: ["appts", "vitals", "admissions", "profile"],
   nurse: ["appts", "vitals", "admissions", "profile"],
@@ -78,7 +75,7 @@ const staffTabsByType = {
 
 function tabsForStaff(staffType) {
   const allowed = staffTabsByType[staffType];
-  if (!allowed) return staffTabs; // unknown staff type: fall back to everything
+  if (!allowed) return staffTabs;
   return staffTabs.filter((t) => allowed.includes(t.key));
 }
 
@@ -97,23 +94,141 @@ const adminTabs = [
   { key: "audit", label: "Audit log", icon: ShieldCheck },
 ];
 
+function getStoredScreen(key, fallback, allowedList) {
+  try {
+    const v = localStorage.getItem(key);
+    if (v && (!allowedList || allowedList.includes(v))) return v;
+  } catch {}
+  return fallback;
+}
+
+function getStoredJson(key) {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+}
+
+const PATIENT_SCREENS = patientTabs.map((t) => t.key);
+const RECORDS_TABS = ["records", "labs", "invoices"];
+const APPTS_TABS = ["appointments", "reminders"];
+const SCREEN_KEYS = [
+  "sgh_screen_patient", "sgh_records_tab", "sgh_appts_tab", "sgh_selected_doctor",
+  "sgh_screen_doctor", "sgh_screen_staff", "sgh_screen_admin",
+];
+// The saved screens belong to one account. If a different user signs in on
+// this browser (e.g. after an idle-timeout logout that skipped handleLogout),
+// they start from their own home screen, not the previous user's page.
+const SCREEN_OWNER_KEY = "sgh_screen_owner";
+
+function clearStoredScreens() {
+  try {
+    SCREEN_KEYS.forEach((k) => localStorage.removeItem(k));
+    localStorage.removeItem(SCREEN_OWNER_KEY);
+  } catch {}
+}
+
 export default function App() {
   const { user, booting, logout } = useAuth();
   const [showPublicSite, setShowPublicSite] = useState(true);
 
-  const [patientScreen, setPatientScreen] = useState("home");
-  const [doctorScreen, setDoctorScreen] = useState("schedule");
-  const [staffScreen, setStaffScreen] = useState("appts");
-  const [adminScreen, setAdminScreen] = useState("overview");
-  const [selectedDoctor, setSelectedDoctor] = useState(null);
+  const [patientScreen, setPatientScreen] = useState(() =>
+    getStoredScreen("sgh_screen_patient", "home", PATIENT_SCREENS)
+  );
+  const [recordsTab, setRecordsTab] = useState(() =>
+    getStoredScreen("sgh_records_tab", "records", RECORDS_TABS)
+  );
+  const [apptsTab, setApptsTab] = useState(() =>
+    getStoredScreen("sgh_appts_tab", "appointments", APPTS_TABS)
+  );
+  const [doctorScreen, setDoctorScreen] = useState(() =>
+    getStoredScreen("sgh_screen_doctor", "schedule", ["schedule", "requests", "patients", "profile"])
+  );
+  const [staffScreen, setStaffScreen] = useState(() =>
+    getStoredScreen("sgh_screen_staff", "appts", ["appts", "vitals", "admissions", "pharmacy", "labs", "profile"])
+  );
+  const [adminScreen, setAdminScreen] = useState(() =>
+    getStoredScreen("sgh_screen_admin", "overview", adminTabs.map((t) => t.key))
+  );
+  const [selectedDoctor, setSelectedDoctor] = useState(() => getStoredJson("sgh_selected_doctor"));
+
+  useEffect(() => {
+    try { localStorage.setItem("sgh_screen_patient", patientScreen); } catch {}
+  }, [patientScreen]);
+
+  useEffect(() => {
+    try { localStorage.setItem("sgh_records_tab", recordsTab); } catch {}
+  }, [recordsTab]);
+
+  useEffect(() => {
+    try { localStorage.setItem("sgh_appts_tab", apptsTab); } catch {}
+  }, [apptsTab]);
+
+  useEffect(() => {
+    try {
+      if (selectedDoctor) localStorage.setItem("sgh_selected_doctor", JSON.stringify(selectedDoctor));
+      else localStorage.removeItem("sgh_selected_doctor");
+    } catch {}
+  }, [selectedDoctor]);
+
+  useEffect(() => {
+    try { localStorage.setItem("sgh_screen_doctor", doctorScreen); } catch {}
+  }, [doctorScreen]);
+
+  useEffect(() => {
+    try { localStorage.setItem("sgh_screen_staff", staffScreen); } catch {}
+  }, [staffScreen]);
+
+  useEffect(() => {
+    try { localStorage.setItem("sgh_screen_admin", adminScreen); } catch {}
+  }, [adminScreen]);
+
+  // Quick actions and the tab bar both land here. `tab` picks the sub-tab of
+  // screens that have one (records: records/labs/invoices; appts:
+  // appointments/reminders); an unknown screen falls back to Home.
+  function handlePatientNavigate(screen, tab) {
+    const target = PATIENT_SCREENS.includes(screen) ? screen : "home";
+    setPatientScreen(target);
+    if (target === "records") setRecordsTab(RECORDS_TABS.includes(tab) ? tab : "records");
+    if (target === "appts") setApptsTab(APPTS_TABS.includes(tab) ? tab : "appointments");
+    setSelectedDoctor(null);
+  }
+
+  function resetScreens() {
+    setPatientScreen("home");
+    setRecordsTab("records");
+    setApptsTab("appointments");
+    setSelectedDoctor(null);
+    setDoctorScreen("schedule");
+    setStaffScreen("appts");
+    setAdminScreen("overview");
+  }
+
+  const userId = user?.id ?? null;
+  useEffect(() => {
+    if (userId == null) return;
+    let owner = null;
+    try { owner = localStorage.getItem(SCREEN_OWNER_KEY); } catch {}
+    if (owner !== String(userId)) {
+      if (owner !== null) resetScreens();
+      try { localStorage.setItem(SCREEN_OWNER_KEY, String(userId)); } catch {}
+    }
+  }, [userId]);
+
+  function handleLogout() {
+    clearStoredScreens();
+    resetScreens();
+    logout();
+  }
 
   const role = user?.role ?? null;
 
   const visibleStaffTabs = tabsForStaff(user?.staffType);
-  // Guards against a stored tab this role can't open (e.g. after switching users).
   const activeStaffScreen = visibleStaffTabs.some((t) => t.key === staffScreen)
     ? staffScreen
-    : visibleStaffTabs[0]?.key;
+    : visibleStaffTabs[0]?.key || "appts";
 
   if (booting) {
     return (
@@ -123,8 +238,6 @@ export default function App() {
     );
   }
 
-  // FR50: Admin/Branch Manager accounts must finish MFA enrolment before
-  // reaching any other screen — matches RequireMfaSetup on the backend.
   if (role && user.requiresMfa && !user.mfaEnabled) {
     return <MfaSetup />;
   }
@@ -149,7 +262,7 @@ export default function App() {
         </div>
       )}
 
-      {role && <IdleTimer timeoutMinutes={10} onLogout={logout} />}
+      {role && <IdleTimer timeoutMinutes={10} onLogout={handleLogout} />}
 
       <div className={role ? "app-stage" : undefined}>
         {role === "patient" && (
@@ -158,65 +271,78 @@ export default function App() {
             tabs={patientTabs}
             active={patientScreen}
             user={user}
-            onTab={(k) => {
-              setPatientScreen(k);
-              setSelectedDoctor(null);
-            }}
+            onTab={(k) => handlePatientNavigate(k)}
           >
-            {patientScreen === "home" && (
-              <PatientHome user={user} goBook={() => setPatientScreen("find")} onNavigate={setPatientScreen} />
-            )}
-            {patientScreen === "find" && !selectedDoctor && <PatientFind onSelect={setSelectedDoctor} user={user} />}
-            {patientScreen === "find" && selectedDoctor && (
-              <PatientDoctorProfile
-                doctor={selectedDoctor}
-                onBack={() => setSelectedDoctor(null)}
-              />
-            )}
-            {patientScreen === "appts" && <PatientAppointments />}
-            {patientScreen === "records" && <PatientRecords user={user} />}
-            {patientScreen === "feedback" && <PatientFeedback />}
-            {patientScreen === "profile" && <PatientProfile user={user} onLogout={logout} />}
+            <ErrorBoundary onReset={() => handlePatientNavigate("home")}>
+              {patientScreen === "home" && (
+                <PatientHome
+                  user={user}
+                  goBook={() => {
+                    setPatientScreen("find");
+                    setSelectedDoctor(null);
+                  }}
+                  onNavigate={handlePatientNavigate}
+                />
+              )}
+              {patientScreen === "find" && !selectedDoctor && <PatientFind onSelect={setSelectedDoctor} user={user} />}
+              {patientScreen === "find" && selectedDoctor && (
+                <PatientDoctorProfile
+                  doctor={selectedDoctor}
+                  onBack={() => setSelectedDoctor(null)}
+                />
+              )}
+              {patientScreen === "appts" && <PatientAppointments tab={apptsTab} onTabChange={setApptsTab} />}
+              {patientScreen === "records" && <PatientRecords user={user} tab={recordsTab} onTabChange={setRecordsTab} />}
+              {patientScreen === "feedback" && <PatientFeedback />}
+              {patientScreen === "profile" && <PatientProfile user={user} onLogout={handleLogout} />}
+            </ErrorBoundary>
           </PhoneFrame>
         )}
 
         {role === "doctor" && (
           <PhoneFrame role="doctor" tabs={doctorTabs} active={doctorScreen} onTab={setDoctorScreen} user={user}>
-            {doctorScreen === "schedule" && <DoctorSchedule user={user} />}
-            {doctorScreen === "requests" && <DoctorRequests user={user} />}
-            {doctorScreen === "patients" && <DoctorPatients user={user} />}
-            {doctorScreen === "profile" && <PatientProfile user={user} onLogout={logout} />}
+            <ErrorBoundary onReset={() => setDoctorScreen("schedule")}>
+              {doctorScreen === "schedule" && <DoctorSchedule user={user} />}
+              {doctorScreen === "requests" && <DoctorRequests user={user} />}
+              {doctorScreen === "patients" && <DoctorPatients user={user} />}
+              {doctorScreen === "profile" && <PatientProfile user={user} onLogout={handleLogout} />}
+            </ErrorBoundary>
           </PhoneFrame>
         )}
 
         {role === "staff" && (
           <PhoneFrame role="staff" tabs={visibleStaffTabs} active={activeStaffScreen} onTab={setStaffScreen} user={user}>
-            {activeStaffScreen === "appts" && <StaffAppointments user={user} />}
-            {activeStaffScreen === "vitals" && <StaffVitals user={user} />}
-            {activeStaffScreen === "admissions" && <StaffAdmissions user={user} />}
-            {activeStaffScreen === "pharmacy" && <StaffPharmacy user={user} />}
-            {activeStaffScreen === "labs" && <StaffLabDesk user={user} />}
-            {activeStaffScreen === "profile" && <PatientProfile user={user} onLogout={logout} />}
+            <ErrorBoundary onReset={() => setStaffScreen(visibleStaffTabs[0]?.key || "appts")}>
+              {activeStaffScreen === "appts" && <StaffAppointments user={user} />}
+              {activeStaffScreen === "vitals" && <StaffVitals user={user} />}
+              {activeStaffScreen === "admissions" && <StaffAdmissions user={user} />}
+              {activeStaffScreen === "pharmacy" && <StaffPharmacy user={user} />}
+              {activeStaffScreen === "labs" && <StaffLabDesk user={user} />}
+              {activeStaffScreen === "profile" && <PatientProfile user={user} onLogout={handleLogout} />}
+            </ErrorBoundary>
           </PhoneFrame>
         )}
 
         {role === "admin" && (
-          <AdminShell tabs={adminTabs} active={adminScreen} onTab={setAdminScreen} onLogout={logout} user={user}>
-            {adminScreen === "overview" && <AdminOverview user={user} />}
-            {adminScreen === "branches" && <AdminBranches user={user} />}
-            {adminScreen === "staff" && <AdminStaff user={user} />}
-            {adminScreen === "config" && <AdminConfig />}
-            {adminScreen === "branchConfig" && <AdminBranchConfig user={user} />}
-            {adminScreen === "feedback" && <AdminFeedback />}
-            {adminScreen === "dataRequests" && <AdminDataRequests />}
-            {adminScreen === "duplicates" && <AdminDuplicatePatients />}
-            {adminScreen === "breakGlass" && <AdminBreakGlass />}
-            {adminScreen === "payments" && <AdminPayments user={user} />}
-            {adminScreen === "reports" && <AdminReports user={user} />}
-            {adminScreen === "audit" && <AdminAudit />}
+          <AdminShell tabs={adminTabs} active={adminScreen} onTab={setAdminScreen} onLogout={handleLogout} user={user}>
+            <ErrorBoundary onReset={() => setAdminScreen("overview")}>
+              {adminScreen === "overview" && <AdminOverview user={user} />}
+              {adminScreen === "branches" && <AdminBranches user={user} />}
+              {adminScreen === "staff" && <AdminStaff user={user} />}
+              {adminScreen === "config" && <AdminConfig />}
+              {adminScreen === "branchConfig" && <AdminBranchConfig user={user} />}
+              {adminScreen === "feedback" && <AdminFeedback />}
+              {adminScreen === "dataRequests" && <AdminDataRequests />}
+              {adminScreen === "duplicates" && <AdminDuplicatePatients />}
+              {adminScreen === "breakGlass" && <AdminBreakGlass />}
+              {adminScreen === "payments" && <AdminPayments user={user} />}
+              {adminScreen === "reports" && <AdminReports user={user} />}
+              {adminScreen === "audit" && <AdminAudit />}
+            </ErrorBoundary>
           </AdminShell>
         )}
       </div>
     </div>
   );
 }
+

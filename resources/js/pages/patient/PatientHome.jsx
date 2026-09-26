@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { FileText, FlaskConical, CreditCard, Bell, X, AlertCircle, Calendar, Clock } from "lucide-react";
+import { FileText, FlaskConical, CreditCard, Bell, AlertCircle, Calendar } from "lucide-react";
 import Card from "../../components/ui/Card.jsx";
 import Button from "../../components/ui/Button.jsx";
 import PulseDivider from "../../components/ui/PulseDivider.jsx";
@@ -11,7 +11,6 @@ import { listPrescriptions } from "../../services/pharmacyService.js";
 export default function PatientHome({ user, goBook, onNavigate }) {
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "Good morning," : hour < 18 ? "Good afternoon," : "Good evening,";
-  const [showNotifications, setShowNotifications] = useState(false);
 
   const [appointments, setAppointments] = useState([]);
   const [prescriptions, setPrescriptions] = useState([]);
@@ -50,38 +49,19 @@ export default function PatientHome({ user, goBook, onNavigate }) {
   const upcoming = appointments.filter((a) => a.status === "Confirmed" || a.status === "Pending")[0] || null;
   const activePrescription = prescriptions.find((p) => p.status === "Active");
 
-  const notifications = [
-    ...(upcoming
-      ? [{ id: "n1", type: "reminder", msg: `Upcoming: ${upcoming.doctor} — ${upcoming.date} at ${upcoming.time}`, time: "soon" }]
-      : []),
-    { id: "n2", type: "system", msg: "Reminders are queued 2 hours before each confirmed appointment.", time: "" },
-  ];
-
   return (
     <div>
       <div style={{ padding: "18px 18px 0" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <div>
-            <div className="f-body" style={{ fontSize: 13, color: "var(--muted)" }}>
-              {greeting}
-            </div>
-            <div className="f-display" style={{ fontSize: 24, fontWeight: 700, color: "var(--ink-deep)" }}>
-              {user?.name?.split(" ")[0]}
-            </div>
-            <div className="f-mono" style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>
-              ID {user?.patientId} · {user?.branch} Branch
-            </div>
+        <div>
+          <div className="f-body" style={{ fontSize: 13, color: "var(--muted)" }}>
+            {greeting}
           </div>
-          <button
-            onClick={() => setShowNotifications(true)}
-            style={{ background: "none", border: "none", cursor: "pointer", position: "relative", padding: 6 }}
-            aria-label="Open notifications"
-          >
-            <Bell size={22} color="var(--ink)" />
-            {notifications.length > 0 && (
-              <span style={{ position: "absolute", top: 2, right: 2, width: 8, height: 8, borderRadius: "50%", background: "var(--rose)", border: "2px solid var(--mist)" }} />
-            )}
-          </button>
+          <div className="f-display" style={{ fontSize: 24, fontWeight: 700, color: "var(--ink-deep)" }}>
+            {user?.name?.split(" ")[0]}
+          </div>
+          <div className="f-mono" style={{ fontSize: 11, color: "var(--muted)", marginTop: 4 }}>
+            ID {user?.patientId} · {user?.branch} Branch
+          </div>
         </div>
       </div>
 
@@ -164,15 +144,24 @@ export default function PatientHome({ user, goBook, onNavigate }) {
         </div>
         <div className="grid-fluid" style={{ "--col-min": "130px", "--grid-gap": "10px" }}>
           {[
-            { icon: FileText, label: "Records", nav: "records" },
-            { icon: FlaskConical, label: "Lab reports", nav: "records" },
-            { icon: CreditCard, label: "Invoices", nav: "records" },
-            { icon: Bell, label: "Reminders", nav: null },
+            { icon: FileText, label: "Records", screen: "records", tab: "records" },
+            { icon: FlaskConical, label: "Lab reports", screen: "records", tab: "labs" },
+            { icon: CreditCard, label: "Invoices", screen: "records", tab: "invoices" },
+            { icon: Bell, label: "Reminders", screen: "appts", tab: "reminders" },
           ].map((a, i) => (
             <Card
               key={i}
-              style={{ padding: 14, display: "flex", alignItems: "center", gap: 10, cursor: a.nav ? "pointer" : "default" }}
-              onClick={() => a.nav && onNavigate && onNavigate(a.nav)}
+              style={{ padding: 14, display: "flex", alignItems: "center", gap: 10, cursor: "pointer" }}
+              role="button"
+              tabIndex={0}
+              aria-label={`Open ${a.label}`}
+              onClick={() => onNavigate && onNavigate(a.screen, a.tab)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  onNavigate && onNavigate(a.screen, a.tab);
+                }
+              }}
             >
               <div style={{ width: 34, height: 34, borderRadius: 10, background: "var(--tint-neutral)", display: "flex", alignItems: "center", justifyContent: "center" }}>
                 <a.icon size={17} color="var(--ink)" />
@@ -184,36 +173,6 @@ export default function PatientHome({ user, goBook, onNavigate }) {
           ))}
         </div>
       </div>
-
-      {showNotifications && (
-        <div
-          style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", background: "rgba(11,36,34,0.6)", zIndex: 50, display: "flex", flexDirection: "column", justifyContent: "flex-end", borderRadius: 34 }}
-          onClick={() => setShowNotifications(false)}
-        >
-          <div style={{ background: "#fff", borderRadius: "24px 24px 34px 34px", padding: "20px 18px 24px", maxHeight: "65%" }} onClick={(e) => e.stopPropagation()}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
-              <div className="f-display" style={{ fontWeight: 700, fontSize: 16, color: "var(--ink-deep)", display: "flex", alignItems: "center", gap: 6 }}>
-                <Bell size={16} color="var(--ink)" /> Notifications
-              </div>
-              <button onClick={() => setShowNotifications(false)} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)" }}>
-                <X size={16} />
-              </button>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {notifications.map((n) => (
-                <div key={n.id} style={{ display: "flex", gap: 10, alignItems: "flex-start", padding: "10px 12px", background: "var(--mist)", borderRadius: 10 }}>
-                  <div style={{ width: 28, height: 28, borderRadius: 8, background: n.type === "reminder" ? "var(--tint-amber)" : "var(--tint-neutral)", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                    {n.type === "reminder" ? <Clock size={14} color="var(--amber-deep)" /> : <Bell size={14} color="var(--ink)" />}
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div className="f-body" style={{ fontSize: 12.5, color: "var(--ink-deep)", lineHeight: 1.4 }}>{n.msg}</div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

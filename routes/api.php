@@ -17,6 +17,7 @@ use App\Http\Controllers\Api\FeedbackController;
 use App\Http\Controllers\Api\HealthController;
 use App\Http\Controllers\Api\LabController;
 use App\Http\Controllers\Api\MfaController;
+use App\Http\Controllers\Api\NotificationController;
 use App\Http\Controllers\Api\PatientController;
 use App\Http\Controllers\Api\PatientDuplicateController;
 use App\Http\Controllers\Api\PaymentController;
@@ -71,6 +72,15 @@ Route::middleware(['auth:sanctum', 'active.session', 'mfa.setup'])->group(functi
     Route::post('/mfa/setup', [MfaController::class, 'setup']);
     Route::post('/mfa/enable', [MfaController::class, 'enable'])->middleware('audit');
     Route::post('/mfa/disable', [MfaController::class, 'disable'])->middleware('audit');
+
+    // FR20: in-app notifications — any authenticated role, scoped to the caller.
+    // The recipient comes from the session, never the request, so there is no
+    // role middleware here. /notifications/health is Admin/Branch Manager only
+    // and enforces that itself inside the controller.
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::get('/notifications/health', [NotificationController::class, 'health']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'markRead']);
 
     // Branches — FR6-FR10
     Route::middleware('audit')->group(function () use ($admin) {
