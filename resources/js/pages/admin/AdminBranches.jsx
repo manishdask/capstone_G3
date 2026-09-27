@@ -130,7 +130,7 @@ export default function AdminBranches() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
         <div>
           <div className="f-display" style={{ fontSize: 20, fontWeight: 700 }}>Branches</div>
-          <div className="f-body" style={{ fontSize: 13, color: "var(--muted)" }}>FR6–10 · Multi-branch management</div>
+          <div className="f-body" style={{ fontSize: 13, color: "var(--muted)" }}>Multi-branch management</div>
         </div>
         {!showAddForm && (
           <Button small icon={Plus} onClick={() => setShowAddForm(true)}>Add Branch</Button>

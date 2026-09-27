@@ -43,7 +43,7 @@ export default function DoctorPatients({ user }) {
 
   return (
     <div>
-      <ScreenHeader title="Patient search" subtitle="Search by name or unique patient ID (FR23)" />
+      <ScreenHeader title="Patient search" subtitle="Search by name or unique patient ID" />
       {error && <div style={{ padding: "0 18px 12px" }}><ErrorState message={error} onRetry={() => setError("")} /></div>}
       <div style={{ padding: "0 18px 12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1px solid var(--line)", borderRadius: 12, padding: "9px 12px", background: "#fff" }}>
@@ -232,7 +232,7 @@ function PatientDetail({ user, patient, onBack }) {
           <span className="f-body" style={{ fontSize: 13 }}>Back to search</span>
         </button>
       </div>
-      <ScreenHeader title={patient.name} subtitle={`${patient.id} · Treatment notes (FR23)`} />
+      <ScreenHeader title={patient.name} subtitle={`${patient.id} · Treatment notes`} />
 
       {error && <div style={{ padding: "0 18px 12px" }}><ErrorState message={error} onRetry={() => setError("")} /></div>}
 
@@ -293,7 +293,7 @@ function PatientDetail({ user, patient, onBack }) {
 
         {showBgForm && (
           <Card style={{ background: "var(--tint-amber)", border: "1px solid var(--line-amber)" }}>
-            <div className="f-display" style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>Request Emergency Access (FR51)</div>
+            <div className="f-display" style={{ fontWeight: 700, fontSize: 13, marginBottom: 6 }}>Request Emergency Access</div>
             <div className="f-body" style={{ fontSize: 11.5, color: "var(--muted)", marginBottom: 10, lineHeight: 1.5 }}>
               Use this only when normal access isn't sufficient for an emergency. A mandatory reason is logged, an alert is raised immediately, and the grant is reviewed retrospectively.
             </div>
@@ -326,7 +326,7 @@ function PatientDetail({ user, patient, onBack }) {
 
         {showPrcForm && (
           <Card style={{ background: "var(--tint-neutral)", border: "none" }}>
-            <div className="f-display" style={{ fontWeight: 700, fontSize: 13, marginBottom: 10 }}>Prescribe Medication (FR28)</div>
+            <div className="f-display" style={{ fontWeight: 700, fontSize: 13, marginBottom: 10 }}>Prescribe Medication</div>
             {prcSuccess ? (
               <div className="f-body" style={{ color: "var(--sage)", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
                 <Check size={16} /> Prescription recorded &amp; sent to pharmacy.
@@ -361,7 +361,7 @@ function PatientDetail({ user, patient, onBack }) {
 
         {showLabForm && (
           <Card style={{ background: "var(--tint-neutral)", border: "none" }}>
-            <div className="f-display" style={{ fontWeight: 700, fontSize: 13, marginBottom: 10 }}>Request Pathology / Imaging (FR31)</div>
+            <div className="f-display" style={{ fontWeight: 700, fontSize: 13, marginBottom: 10 }}>Request Pathology / Imaging</div>
             {labSuccess ? (
               <div className="f-body" style={{ color: "var(--sage)", fontSize: 12, display: "flex", alignItems: "center", gap: 4 }}>
                 <Check size={16} /> Diagnostic request dispatched to lab desk.

@@ -208,7 +208,7 @@ export default function IdleTimer({ timeoutMinutes = 10, onLogout }) {
           className="f-body"
           style={{ fontSize: 10.5, color: "var(--muted)", marginTop: 14 }}
         >
-          NFR11 · Inactivity auto-logout policy · Timeout: {timeoutMinutes} min
+          Inactivity auto-logout policy · Timeout: {timeoutMinutes} min
         </div>
       </div>
     </div>

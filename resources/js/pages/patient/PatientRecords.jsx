@@ -117,7 +117,7 @@ export default function PatientRecords({ user, tab = "records", onTabChange }) {
             </Card>
 
             <div className="f-display" style={{ fontSize: 13, fontWeight: 700, color: "var(--ink-deep)", marginBottom: 8, marginTop: 10 }}>
-              Prescriptions (FR28)
+              Prescriptions
             </div>
 
             {prescriptions.length === 0 ? (
@@ -147,7 +147,7 @@ export default function PatientRecords({ user, tab = "records", onTabChange }) {
           <div>
             {labRequests.length === 0 ? (
               <Card style={{ textAlign: "center", padding: 28 }}>
-                <div className="f-body" style={{ fontSize: 13, color: "var(--muted)" }}>No lab reports requested yet (FR33).</div>
+                <div className="f-body" style={{ fontSize: 13, color: "var(--muted)" }}>No lab reports requested yet.</div>
               </Card>
             ) : (
               labRequests.map((l) => (
@@ -183,7 +183,7 @@ export default function PatientRecords({ user, tab = "records", onTabChange }) {
           <div>
             {invoices.length === 0 ? (
               <Card style={{ textAlign: "center", padding: 28 }}>
-                <div className="f-body" style={{ fontSize: 13, color: "var(--muted)" }}>No invoices generated yet (FR37).</div>
+                <div className="f-body" style={{ fontSize: 13, color: "var(--muted)" }}>No invoices generated yet.</div>
               </Card>
             ) : (
               invoices.map((i) => (

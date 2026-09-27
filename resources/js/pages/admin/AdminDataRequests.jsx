@@ -67,7 +67,7 @@ export default function AdminDataRequests() {
         Patient Data Requests
       </div>
       <div className="f-body" style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>
-        FR61 · Access & correction requests — identity check, assignment and decision
+        Access & correction requests — identity check, assignment and decision
       </div>
 
       <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>

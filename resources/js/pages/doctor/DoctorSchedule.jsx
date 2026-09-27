@@ -129,7 +129,7 @@ export default function DoctorSchedule() {
 
   return (
     <div>
-      <ScreenHeader title="Schedule" subtitle="FR37 · Mark a visit completed to finalise its invoice" />
+      <ScreenHeader title="Schedule" subtitle="Mark a visit completed to finalise its invoice" />
       {error && <div style={{ padding: "0 18px 12px" }}><ErrorState message={error} onRetry={load} /></div>}
       {notice && (
         <div style={{ padding: "0 18px 12px" }}>

@@ -101,7 +101,7 @@ export default function AdminStaff() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
         <div>
           <div className="f-display" style={{ fontSize: 20, fontWeight: 700 }}>Staff management</div>
-          <div className="f-body" style={{ fontSize: 13, color: "var(--muted)" }}>FR5, FR21–25 · Add, deactivate or modify accounts</div>
+          <div className="f-body" style={{ fontSize: 13, color: "var(--muted)" }}>Add, deactivate or modify accounts</div>
         </div>
         {!showAddForm && <Button small icon={Plus} onClick={() => setShowAddForm(true)}>Add Staff</Button>}
       </div>

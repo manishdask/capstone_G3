@@ -247,7 +247,7 @@ export default function Login() {
                 </span>
               </div>
               <div className="f-body" style={{ fontSize: 12.5, color: "var(--muted)", marginBottom: 18 }}>
-                This account requires multi-factor authentication (FR50). Enter the 6-digit code from your authenticator app, or one of your recovery codes.
+                This account requires multi-factor authentication. Enter the 6-digit code from your authenticator app, or one of your recovery codes.
               </div>
 
               <div className="sgh-field">
@@ -367,7 +367,7 @@ export default function Login() {
                 </button>.
               </div>
               <div className="f-body" style={{ fontSize: 12.5, color: "var(--muted)", marginBottom: 18 }}>
-                FR1 · Registers patient details and generates a global ID.
+                Registers patient details and generates a global ID.
               </div>
 
               <div style={{ display: "flex", gap: 10 }}>
@@ -532,7 +532,7 @@ export default function Login() {
               <strong style={{ display: "block", marginTop: 10 }}>How Data Is Used</strong>
               <p style={{ marginTop: 6 }}>Your data is used exclusively for: delivering healthcare services, maintaining medical records, processing billing, and internal system analytics. Data is NOT shared with third parties without your explicit consent, except where required by law.</p>
               <strong style={{ display: "block", marginTop: 10 }}>Data Security</strong>
-              <p style={{ marginTop: 6 }}>Sensitive fields are encrypted at rest (AES-256-GCM) and in transit (TLS). Access is governed by Role-Based Access Control (RBAC) and all activity is logged in a compliance audit trail (NFR12).</p>
+              <p style={{ marginTop: 6 }}>Sensitive fields are encrypted at rest (AES-256-GCM) and in transit (TLS). Access is governed by Role-Based Access Control (RBAC) and all activity is logged in a compliance audit trail.</p>
               <strong style={{ display: "block", marginTop: 10 }}>Your Rights</strong>
               <p style={{ marginTop: 6 }}>You have the right to access, correct, or request deletion of your personal data. Contact the Privacy Officer at <em>privacy@stgeorge.health</em>.</p>
               <div style={{ marginTop: 14, padding: 10, background: "var(--tint-neutral)", borderRadius: 8, fontSize: 11.5, color: "var(--muted)" }}>

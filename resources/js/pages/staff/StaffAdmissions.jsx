@@ -70,7 +70,7 @@ export default function StaffAdmissions({ user }) {
 
   return (
     <div>
-      <ScreenHeader title="Ward & Admissions" subtitle="FR52-54 · In-patient admissions, bed allocation, ward observations" />
+      <ScreenHeader title="Ward & Admissions" subtitle="In-patient admissions, bed allocation, ward observations" />
 
       <div style={{ padding: "0 18px 14px" }}>
         {error && <ErrorState message={error} onRetry={load} />}

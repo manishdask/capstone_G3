@@ -81,7 +81,7 @@ export default function MfaSetup() {
           </div>
           <div>
             <div className="f-display" style={{ fontWeight: 700, fontSize: 15, color: "var(--ink-deep)" }}>Set Up Multi-Factor Authentication</div>
-            <div className="f-body" style={{ fontSize: 11.5, color: "var(--muted)" }}>Required for {user?.roleNames?.join("/") || "your role"} — FR50</div>
+            <div className="f-body" style={{ fontSize: 11.5, color: "var(--muted)" }}>Required for {user?.roleNames?.join("/") || "your role"}</div>
           </div>
         </div>
 

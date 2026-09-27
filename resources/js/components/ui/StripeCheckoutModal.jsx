@@ -290,7 +290,7 @@ export default function StripeCheckoutModal({ invoice, onClose, onSuccess }) {
         ) : (
           <div>
             <p className="f-body" style={{ fontSize: 12, color: "var(--muted)", margin: "0 0 12px" }}>
-              Sandboxed gateway (FR40) — test mode, no card required. Payment succeeds instantly.
+              Sandboxed gateway — test mode, no card required. Payment succeeds instantly.
             </p>
             {sandboxError && <ErrorLine>{sandboxError}</ErrorLine>}
             <Button full variant="dark" onClick={handleSandboxPay} disabled={processing}>

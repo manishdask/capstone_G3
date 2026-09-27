@@ -67,7 +67,7 @@ export default function AdminBreakGlass() {
         Break-Glass Access
       </div>
       <div className="f-body" style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>
-        FR51 · Emergency access overrides — every grant is time-boxed, alerted here, and awaits retrospective compliance review
+        Emergency access overrides — every grant is time-boxed, alerted here, and awaits retrospective compliance review
       </div>
 
       <div style={{ display: "flex", gap: 6, marginBottom: 14 }}>

@@ -109,7 +109,7 @@ export default function AdminPayments({ user }) {
         Payments & Refunds
       </div>
       <div className="f-body" style={{ fontSize: 13, color: "var(--muted)", marginBottom: 14 }}>
-        FR36–FR40 · {branchScoped ? `${user?.branch || "Your"} branch` : "All branches"} · Stripe test mode (AUD) · FR64 refunds
+        {branchScoped ? `${user?.branch || "Your"} branch` : "All branches"} · Stripe test mode (AUD) · Refunds
       </div>
 
       <div style={{ display: "flex", gap: 8, marginBottom: 12, flexWrap: "wrap" }}>

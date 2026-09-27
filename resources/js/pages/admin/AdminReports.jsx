@@ -53,7 +53,7 @@ export default function AdminReports() {
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
         <div>
           <div className="f-display" style={{ fontSize: 20, fontWeight: 700 }}>Reports & analytics</div>
-          <div className="f-body" style={{ fontSize: 13, color: "var(--muted)" }}>FR41–44 · Exportable dashboards</div>
+          <div className="f-body" style={{ fontSize: 13, color: "var(--muted)" }}>Exportable dashboards</div>
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <Button small variant="ghost" icon={FileSpreadsheet} disabled={exporting === "csv"} onClick={() => handleExport("csv")}>
@@ -68,7 +68,7 @@ export default function AdminReports() {
       {error && <ErrorState message={error} onRetry={load} />}
 
       <Card style={{ marginBottom: 14 }}>
-        <div className="f-display" style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>Appointments by department (FR44)</div>
+        <div className="f-display" style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>Appointments by department</div>
         {departments.length === 0 ? (
           <div className="f-body" style={{ fontSize: 12.5, color: "var(--muted)", textAlign: "center", padding: "20px 0" }}>No appointment activity recorded yet.</div>
         ) : (
@@ -85,7 +85,7 @@ export default function AdminReports() {
       </Card>
 
       <Card>
-        <div className="f-display" style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>Patient volume by branch (FR9)</div>
+        <div className="f-display" style={{ fontWeight: 700, fontSize: 14, marginBottom: 12 }}>Patient volume by branch</div>
         <ResponsiveContainer width="100%" height={220}>
           <BarChart data={branches}>
             <CartesianGrid stroke="var(--line)" vertical={false} />

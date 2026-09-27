@@ -71,7 +71,7 @@ function BackupPanel() {
       </div>
 
       <div className="f-body" style={{ fontSize: 12.5, color: "var(--muted)", lineHeight: 1.5, marginBottom: 14 }}>
-        FR57 · Encrypted `mysqldump` capture, verified non-empty, scheduled daily at 02:00 (`php artisan backup:run`). FR58 · Restore drills decrypt and validate a backup without touching the live database.
+        Encrypted `mysqldump` capture, verified non-empty, scheduled daily at 02:00 (`php artisan backup:run`). Restore drills decrypt and validate a backup without touching the live database.
       </div>
 
       <div style={{ marginBottom: 14 }}>
@@ -156,7 +156,7 @@ function MfaSecurityCard() {
     <Card style={{ marginTop: 16 }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
         <ShieldCheck size={18} color="var(--ink)" />
-        <span className="f-display" style={{ fontWeight: 700, fontSize: 14.5 }}>Multi-Factor Authentication (FR50)</span>
+        <span className="f-display" style={{ fontWeight: 700, fontSize: 14.5 }}>Multi-Factor Authentication</span>
       </div>
 
       <div className="f-body" style={{ fontSize: 12.5, color: "var(--muted)", lineHeight: 1.5, marginBottom: 14 }}>
@@ -239,11 +239,11 @@ function SystemSettingsCard() {
     <Card>
       <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 14 }}>
         <Settings size={18} color="var(--ink)" />
-        <span className="f-display" style={{ fontWeight: 700, fontSize: 14.5 }}>System Variables (FR59)</span>
+        <span className="f-display" style={{ fontWeight: 700, fontSize: 14.5 }}>System Variables</span>
       </div>
 
       <div className="f-body" style={{ fontSize: 10.5, color: "var(--muted)", marginBottom: 4 }}>
-        Inactivity auto-logout is fixed at 10 minutes (NFR11, server-enforced) and isn't editable here.
+        Inactivity auto-logout is fixed at 10 minutes (server-enforced) and isn't editable here.
       </div>
 
       {error && <div className="f-body" style={{ color: "var(--rose)", fontSize: 12, margin: "8px 0" }}>{error}</div>}
@@ -298,7 +298,7 @@ export default function AdminConfig() {
       </div>
       <div className="f-body" style={{ display: "flex", alignItems: "flex-start", gap: 8, background: "var(--tint-success)", border: "1px solid var(--line-success)", borderRadius: 10, padding: "10px 12px", fontSize: 11.5, color: "var(--sage)", marginBottom: 16 }}>
         <Info size={14} style={{ flexShrink: 0, marginTop: 1 }} />
-        System variables, backups, and MFA below are real — every change is persisted and audited (FR59, FR57/58, FR50).
+        System variables, backups, and MFA below are real — every change is persisted and audited.
       </div>
 
       <div className="grid-split" style={{ "--split": "1.2fr 1fr" }}>
