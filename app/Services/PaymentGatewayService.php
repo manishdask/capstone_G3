@@ -62,14 +62,19 @@ class PaymentGatewayService
      *
      * @return array{provider: string, gateway_reference: string, client_secret: ?string}
      */
-    public function createIntent(float $amount): array
+    public function createIntent(float $amount, array $metadata = []): array
     {
         if ($this->provider() === 'stripe') {
             $intent = $this->stripe()->paymentIntents->create([
                 'amount' => $this->toMinor($amount),
                 'currency' => $this->currency(),
-                'automatic_payment_methods' => ['enabled' => true],
+                // Card only: the Elements card field is the one payment UI we
+                // render, and redirect-based methods would need a return URL.
+                'payment_method_types' => ['card'],
                 'description' => 'SGH App invoice payment',
+                // Ties the intent to one invoice. confirm() checks it, so a
+                // succeeded intent can never settle a different invoice.
+                'metadata' => $metadata,
             ]);
 
             return [
@@ -129,7 +134,9 @@ class PaymentGatewayService
      */
     public function refund(string $originalReference, float $amount): array
     {
-        if ($this->provider() === 'stripe') {
+        // Only a real Stripe PaymentIntent is refunded through Stripe; a
+        // sandbox_* payment taken before the switch is refunded in simulation.
+        if ($this->provider() === 'stripe' && str_starts_with($originalReference, 'pi_')) {
             $refund = $this->stripe()->refunds->create(['payment_intent' => $originalReference]);
 
             return [
@@ -146,19 +153,48 @@ class PaymentGatewayService
         ];
     }
 
-    private function stripe(): StripeClient
+    /**
+     * Full server-side view of a Stripe PaymentIntent — the source of truth
+     * for whether money moved. Never derived from anything the browser sent.
+     *
+     * @return array{id: string, status: string, amount_minor: int, currency: string, metadata: array, client_secret: ?string, error: ?string, decline_code: ?string}
+     */
+    public function retrieveStripeIntent(string $intentId): array
     {
-        return $this->stripe ??= new StripeClient(config('payments.secret_key'));
+        $intent = $this->stripe()->paymentIntents->retrieve($intentId);
+
+        return [
+            'id' => $intent->id,
+            'status' => $intent->status,
+            'amount_minor' => (int) $intent->amount,
+            'currency' => strtolower((string) $intent->currency),
+            'metadata' => $intent->metadata ? $intent->metadata->toArray() : [],
+            'client_secret' => $intent->client_secret,
+            // Stripe's reason for the most recent failed attempt, e.g. a decline.
+            'error' => $intent->last_payment_error?->message,
+            'decline_code' => $intent->last_payment_error?->decline_code,
+        ];
     }
 
-    private function currency(): string
+    /** Re-price an open intent when the invoice total changed (e.g. a lab test was added). */
+    public function updateStripeIntentAmount(string $intentId, float $amount): void
+    {
+        $this->stripe()->paymentIntents->update($intentId, ['amount' => $this->toMinor($amount)]);
+    }
+
+    public function currency(): string
     {
         return strtolower((string) config('payments.currency', 'aud'));
     }
 
-    private function toMinor(float $amount): int
+    public function toMinor(float $amount): int
     {
         return (int) round($amount * 100);
+    }
+
+    private function stripe(): StripeClient
+    {
+        return $this->stripe ??= new StripeClient(config('payments.secret_key'));
     }
 
     private function fromMinor(int $minor): float

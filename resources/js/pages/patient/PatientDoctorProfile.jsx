@@ -152,7 +152,7 @@ export default function PatientDoctorProfile({ doctor, onBack }) {
       {!booked && (
         <div style={{ padding: "14px 18px" }}>
           <div className="f-display" style={{ fontSize: 13, fontWeight: 700, marginBottom: 10 }}>
-            Choose date &amp; time · FR16–17
+            Choose date &amp; time
           </div>
           <Card>
             <label className="f-body" style={{ fontSize: 12, color: "var(--muted)", display: "block", marginBottom: 6 }}>

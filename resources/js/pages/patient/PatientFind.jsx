@@ -93,7 +93,7 @@ export default function PatientFind({ onSelect, user }) {
 
   return (
     <div>
-      <ScreenHeader title="Find a doctor" subtitle="Select branch, specialty and doctor · FR16–17" />
+      <ScreenHeader title="Find a doctor" subtitle="Select branch, specialty and doctor" />
       {error && <div style={{ padding: "0 18px 10px" }}><ErrorState message={error} onRetry={load} /></div>}
 
       <div style={{ padding: "0 18px 10px" }}>

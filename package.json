@@ -8,6 +8,8 @@
         "deploy:dry": "vite build && node tools/deploy_release.cjs --dry-run"
     },
     "dependencies": {
+        "@stripe/react-stripe-js": "^6.12.0",
+        "@stripe/stripe-js": "^9.17.0",
         "lucide-react": "^0.383.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",

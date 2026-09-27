@@ -39,7 +39,7 @@ export default function StaffVitals({ user }) {
 
   return (
     <div>
-      <ScreenHeader title="Record vitals" subtitle="Search a patient to begin (FR24)" />
+      <ScreenHeader title="Record vitals" subtitle="Search a patient to begin" />
       {error && <div style={{ padding: "0 18px 12px" }}><ErrorState message={error} onRetry={() => setError("")} /></div>}
       <div style={{ padding: "0 18px 12px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8, border: "1px solid var(--line)", borderRadius: 12, padding: "9px 12px", background: "#fff" }}>
@@ -129,7 +129,7 @@ function VitalsForm({ user, patient, onBack }) {
           <span className="f-body" style={{ fontSize: 13 }}>Back to search</span>
         </button>
       </div>
-      <ScreenHeader title={patient.name} subtitle={`${patient.id} · FR24 · Nurse observations`} />
+      <ScreenHeader title={patient.name} subtitle={`${patient.id} · Nurse observations`} />
       {error && <div style={{ padding: "0 18px 12px" }}><ErrorState message={error} onRetry={() => setError("")} /></div>}
       <div style={{ padding: "0 18px 20px" }}>
         <Card>

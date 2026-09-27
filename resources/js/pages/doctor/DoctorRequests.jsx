@@ -73,7 +73,7 @@ export default function DoctorRequests() {
     <div>
       <ScreenHeader
         title="Upcoming appointments"
-        subtitle="FR18 · Bookings auto-confirm; reject one here with a recorded reason"
+        subtitle="Bookings auto-confirm; reject one here with a recorded reason"
       />
       {error && <div style={{ padding: "0 18px 12px" }}><ErrorState message={error} onRetry={load} /></div>}
       {loading ? (

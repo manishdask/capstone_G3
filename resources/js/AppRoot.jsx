@@ -8,6 +8,8 @@ import ErrorBoundary from "./components/ui/ErrorBoundary.jsx";
 import Login from "./pages/auth/Login.jsx";
 import MfaSetup from "./pages/auth/MfaSetup.jsx";
 import PublicSite from "./pages/public/PublicSite.jsx";
+import PrivacyPolicy from "./pages/public/PrivacyPolicy.jsx";
+import { AccessibilityPage, RightToInformationPage, CopyrightDisclaimerPage } from "./pages/public/SiteInfoPages.jsx";
 import { useAuth } from "./context/AuthContext.jsx";
 
 import PatientHome from "./pages/patient/PatientHome.jsx";
@@ -93,6 +95,20 @@ const adminTabs = [
   { key: "reports", label: "Reports", icon: TrendingUp },
   { key: "audit", label: "Audit log", icon: ShieldCheck },
 ];
+
+// Standalone "Site information" pages, each a real URL (the Laravel catch-all
+// serves this SPA for any path) so they can be linked and bookmarked, signed
+// in or out. Matched once from the path — no router library, per convention.
+const SITE_INFO_PAGES = {
+  "/privacy-policy": PrivacyPolicy,
+  "/accessibility": AccessibilityPage,
+  "/right-to-information": RightToInformationPage,
+  "/copyright-and-disclaimer": CopyrightDisclaimerPage,
+};
+
+function siteInfoPageForPath() {
+  return SITE_INFO_PAGES[window.location.pathname.replace(/\/+$/, "")] || null;
+}
 
 function getStoredScreen(key, fallback, allowedList) {
   try {
@@ -229,6 +245,11 @@ export default function App() {
   const activeStaffScreen = visibleStaffTabs.some((t) => t.key === staffScreen)
     ? staffScreen
     : visibleStaffTabs[0]?.key || "appts";
+
+  const SiteInfoPage = siteInfoPageForPath();
+  if (SiteInfoPage) {
+    return <SiteInfoPage />;
+  }
 
   if (booting) {
     return (

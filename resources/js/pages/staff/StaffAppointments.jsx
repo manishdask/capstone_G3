@@ -30,7 +30,7 @@ export default function StaffAppointments({ user }) {
 
   return (
     <div>
-      <ScreenHeader title="Appointment desk" subtitle="FR18 · Tracking and administrative overview" />
+      <ScreenHeader title="Appointment desk" subtitle="Tracking and administrative overview" />
       {error && <div style={{ padding: "0 18px 12px" }}><ErrorState message={error} onRetry={load} /></div>}
       {loading ? (
         <LoadingState label="Loading appointments…" />

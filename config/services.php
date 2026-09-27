@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    // FR40 Stripe (TEST mode only). Read from the environment — never commit a
+    // key. `key` is the publishable pk_test_ key (safe for the browser);
+    // `secret` is the sk_test_ key and must never leave the server.
+    // config/payments.php is what the payment code reads; it falls back to
+    // these names so either naming scheme works.
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+    ],
+
 ];

@@ -87,7 +87,7 @@ export default function StaffPharmacy({ user }) {
 
   return (
     <div>
-      <ScreenHeader title="Pharmacy stock" subtitle="FR26–30 · Medicine dispensing and low stock alerts" />
+      <ScreenHeader title="Pharmacy stock" subtitle="Medicine dispensing and low stock alerts" />
       {error && <div style={{ padding: "0 18px 12px" }}><ErrorState message={error} onRetry={load} /></div>}
       {notice && <div style={{ padding: "0 18px 12px" }}><div className="f-body" style={{ background: "var(--tint-success)", color: "var(--sage)", border: "1px solid var(--sage)", borderRadius: 10, padding: "8px 12px", fontSize: 12 }}>{notice}</div></div>}
 
@@ -188,7 +188,7 @@ export default function StaffPharmacy({ user }) {
           <div style={{ background: "#fff", borderRadius: 18, padding: "24px 22px", maxWidth: 380, width: "100%" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
               <div className="f-display" style={{ fontWeight: 700, fontSize: 15, color: "var(--rose)", display: "flex", alignItems: "center", gap: 6 }}>
-                <ShieldAlert size={17} /> Allergy Conflict (FR63)
+                <ShieldAlert size={17} /> Allergy Conflict
               </div>
               <button onClick={() => { setAllergyPrompt(null); setOverrideReason(""); }} style={{ background: "none", border: "none", cursor: "pointer", color: "var(--muted)" }}><X size={16} /></button>
             </div>

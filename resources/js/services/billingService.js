@@ -1,5 +1,5 @@
 import { apiFetch, apiDownload, toQuery } from "./api.js";
-import { normalizeInvoice } from "./adapters.js";
+import { normalizeInvoice, formatDate } from "./adapters.js";
 
 export async function listInvoices(params = {}) {
   const res = await apiFetch(`/invoices${toQuery({ per_page: 50, ...params })}`);
@@ -7,7 +7,34 @@ export async function listInvoices(params = {}) {
 }
 
 function normalizePayment(raw) {
-  return { id: raw.id, invoiceId: raw.invoice_id, gatewayReference: raw.gateway_reference, amount: Number(raw.amount), status: raw.status, method: raw.method, receivedAt: raw.received_at };
+  const inv = raw.invoice;
+  return {
+    id: raw.id,
+    invoiceId: raw.invoice_id,
+    gatewayReference: raw.gateway_reference,
+    provider: raw.provider || (String(raw.gateway_reference || "").startsWith("pi_") ? "stripe" : "sandbox"),
+    amount: Number(raw.amount),
+    currency: (raw.currency || "AUD").toUpperCase(),
+    status: raw.status,
+    method: raw.method,
+    receivedAt: raw.received_at,
+    paidAt: raw.paid_at || raw.received_at,
+    paidOn: formatDate(raw.paid_at || raw.received_at),
+    failureReason: raw.failure_reason || "",
+    patientName: inv?.patient ? `${inv.patient.first_name} ${inv.patient.last_name}` : "",
+    patientId: inv?.patient?.global_patient_id ?? "",
+    branch: inv?.branch?.name ?? "",
+    desc: (inv?.items || []).map((i) => i.description).join(", ") || (inv ? "Hospital charges" : ""),
+  };
+}
+
+/**
+ * FR36–FR40 payment history. The backend scopes it: a patient gets only their
+ * own settled payments; Admin gets every branch; branch staff their branch.
+ */
+export async function listPayments(params = {}) {
+  const res = await apiFetch(`/payments${toQuery({ per_page: 50, ...params })}`);
+  return (res.data || []).map(normalizePayment);
 }
 
 /** FR38/FR64: full invoice detail including its payment history. */

@@ -80,7 +80,7 @@ export default function PatientAppointments({ tab = "appointments", onTabChange 
     <div>
       <ScreenHeader
         title={tab === "reminders" ? "Reminders" : "My appointments"}
-        subtitle={tab === "reminders" ? "Upcoming visits & alerts · FR20" : "FR16–20 · Booking status tracker"}
+        subtitle={tab === "reminders" ? "Upcoming visits & alerts" : "Booking status tracker"}
       />
       {error && <div style={{ padding: "0 18px 12px" }}><ErrorState message={error} onRetry={load} /></div>}
 

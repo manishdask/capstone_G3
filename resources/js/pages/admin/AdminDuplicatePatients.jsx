@@ -62,7 +62,7 @@ export default function AdminDuplicatePatients() {
         Possible Duplicate Patients
       </div>
       <div className="f-body" style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>
-        FR62 · Fuzzy match on name, date of birth and contact number — authorised review required before merge
+        Fuzzy match on name, date of birth and contact number — authorised review required before merge
       </div>
 
       {error && <ErrorState message={error} onRetry={load} />}

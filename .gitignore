@@ -25,3 +25,6 @@ _ide_helper.php
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Stripe TEST keys for servers whose .env the team cannot edit (see config/payments.php)
+/stripe_keys.php

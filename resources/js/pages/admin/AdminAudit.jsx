@@ -70,7 +70,7 @@ export default function AdminAudit() {
         Audit compliance log
       </div>
       <div className="f-body" style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>
-        FR55/56 · NFR12 · Actor, action, object and outcome logged on every sensitive write — filterable, exportable, alerted
+        Actor, action, object and outcome logged on every sensitive write — filterable, exportable, alerted
       </div>
 
       <SecurityAlertsPanel alerts={alerts} error={alertsError} onRetry={loadAlerts} />
@@ -137,7 +137,7 @@ function SecurityAlertsPanel({ alerts, error, onRetry }) {
     return (
       <Card style={{ marginBottom: 14, background: "var(--tint-success)", border: "1px solid var(--line-success)" }}>
         <div className="f-body" style={{ fontSize: 12.5, color: "var(--sage)", display: "flex", alignItems: "center", gap: 6 }}>
-          <ShieldCheck size={15} /> No automated security alerts right now (FR56).
+          <ShieldCheck size={15} /> No automated security alerts right now.
         </div>
       </Card>
     );
@@ -146,7 +146,7 @@ function SecurityAlertsPanel({ alerts, error, onRetry }) {
   return (
     <Card style={{ marginBottom: 14, background: "var(--tint-amber)", border: "1px solid var(--line-amber)" }}>
       <div className="f-display" style={{ fontWeight: 700, fontSize: 13.5, marginBottom: 10, display: "flex", alignItems: "center", gap: 6, color: "var(--amber-deep)" }}>
-        <ShieldAlert size={16} /> Automated Security Alerts (FR56) — {total}
+        <ShieldAlert size={16} /> Automated Security Alerts — {total}
       </div>
 
       {repeatedFailedLogins.length > 0 && (

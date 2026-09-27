@@ -178,6 +178,11 @@ Route::middleware(['auth:sanctum', 'active.session', 'mfa.setup'])->group(functi
     Route::post('/invoices/{invoice}/confirm', [BillingController::class, 'confirm'])
         ->middleware(['audit', "role:{$patient},{$receptionist},{$admin}"]);
 
+    // FR36-FR40: payment history — scoped in InvoicePaymentService (patient: own;
+    // Admin: all; Branch Manager/Receptionist: own branch).
+    Route::get('/payments', [PaymentController::class, 'index'])
+        ->middleware("role:{$patient},{$receptionist},{$admin},{$branchManager}");
+
     // FR64 (proposed): staff-initiated refund.
     Route::post('/payments/{payment}/refund', [PaymentController::class, 'refund'])
         ->middleware(['audit', "role:{$receptionist},{$admin}"]);

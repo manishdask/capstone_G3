@@ -42,7 +42,7 @@ export default function AdminBranchConfig({ user }) {
         Branch Configuration
       </div>
       <div className="f-body" style={{ fontSize: 13, color: "var(--muted)", marginBottom: 16 }}>
-        FR60 · Branch-scoped departments, service prices, wards/beds, and inventory thresholds
+        Branch-scoped departments, service prices, wards/beds, and inventory thresholds
       </div>
 
       <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 16 }}>
